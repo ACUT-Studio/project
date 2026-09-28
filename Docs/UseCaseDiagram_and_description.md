@@ -1,7 +1,7 @@
-# Use Case Diagram
+# Діаграма прецедентів
 
 
-![UML Diagram](UseCaseDiagram.png)
+![UML Diagram](images/UseCaseDiagram.png)
 
 
 # Опис основних сценаріїв
