@@ -1,36 +1,36 @@
-# Main Menu
+# Головне меню
 
 ![Main Menu](images/Main_menu.png)
 
 
 
-# Loading
+# Екран завантаження
 
 ![Loading](images/Loading.png)
 
 
 
-# Lobby
+# Лобі
 
 ![Loddy](images/Lobby.png)
 
 
-# Inventory
+# Інвентарь
 
 ![Inventory](images/Inventory.png)
 
 
-# Fight 
+# Екран битви
 
 ![Fight](images/Fight.png)
 
 
-# Victory
+# Екран перемоги
 
 ![Victory](images/Victory.png)
 
 
-# Settings
+# Налаштування
 
 ![Settings](images/Settings.png)
 

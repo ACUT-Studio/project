@@ -1,4 +1,4 @@
-# Use Case Diagram
+# Діаграма прецедентів
 
 
 ![UML Diagram](images/UseCaseDiagram.png)
