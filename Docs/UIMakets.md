@@ -17,7 +17,12 @@
 
 # Інвентарь
 
-![Inventory](images/Inventory.png)
+![InventoryView](images/Inventoryview.png)
+
+
+# Крафтинг зілля
+
+![Recipes](images/Recipes.png)
 
 
 # Екран битви
