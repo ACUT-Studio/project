@@ -17,7 +17,12 @@
 
 # Інвентарь
 
-![Inventory](images/Inventory.png)
+![InventoryView](images/Inventoryview.png)
+
+
+# Лобі
+
+![Recipes](images/Recipes.png)
 
 
 # Екран битви
