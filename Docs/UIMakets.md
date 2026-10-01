@@ -20,7 +20,7 @@
 ![InventoryView](images/Inventoryview.png)
 
 
-# Лобі
+# Крафтинг зілля
 
 ![Recipes](images/Recipes.png)
 
