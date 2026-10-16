@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="Acut.Core/Acut.Core.csproj" />
+  <Project Path="Acut.Data/Acut.Data.csproj" />
+  <Project Path="Acut.Tests/Acut.Tests.csproj" />
   <Project Path="acut/acut.csproj" />
 </Solution>

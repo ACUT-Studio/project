@@ -1,0 +1,77 @@
+<UserControl x:Class="acut.Views.CityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Шапка -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="{Binding CityName}" FontSize="24" FontWeight="Bold" Margin="0,0,24,0" />
+            <TextBlock Text="{Binding PlayerName, StringFormat='Гравець: {0}'}" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Level, StringFormat='Рівень: {0}'}" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Gold, StringFormat='Валюта: {0}'}" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Population, StringFormat='Населення: {0}'}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Список збудованого й каталог будівель -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Місто" Grid.Column="0" Margin="0,0,8,0">
+                <ListView ItemsSource="{Binding Buildings}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Будівля" DisplayMemberBinding="{Binding Name}" Width="180" />
+                            <GridViewColumn Header="Рівень" DisplayMemberBinding="{Binding Level}" Width="60" />
+                            <GridViewColumn Header="Стан" DisplayMemberBinding="{Binding Status}" Width="110" />
+                            <GridViewColumn Header="Дохід/тік" DisplayMemberBinding="{Binding Income}" Width="80" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </GroupBox>
+
+            <GroupBox Header="Будівництво" Grid.Column="1" Margin="8,0,0,0">
+                <ItemsControl ItemsSource="{Binding BuildOptions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <TextBlock>
+                                        <Run Text="{Binding BuildCost, Mode=OneWay}" /> валюти,
+                                        дохід <Run Text="{Binding Income, Mode=OneWay}" />/тік ·
+                                        <Run Text="{Binding Hint, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Побудувати" Padding="12,4"
+                                        Command="{Binding DataContext.BuildCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </GroupBox>
+        </Grid>
+
+        <!-- Низ -->
+        <DockPanel Grid.Row="2" Margin="0,12,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Зберегти" Command="{Binding SaveCommand}" Padding="16,6" Margin="0,0,8,0" />
+                <Button Content="Зберегти та вийти в меню" Command="{Binding ExitToMenuCommand}" Padding="16,6" />
+            </StackPanel>
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource NullOrEmptyToVisibility}}" />
+        </DockPanel>
+    </Grid>
+</UserControl>
