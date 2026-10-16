@@ -1,0 +1,22 @@
+<UserControl x:Class="acut.Views.CharacterCreationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="320">
+        <TextBlock Text="Створення персонажа" Style="{StaticResource Title}" />
+
+        <TextBlock Text="Ім'я" />
+        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="24" Margin="0,2,0,10" />
+
+        <TextBlock Text="Зачіска" />
+        <ComboBox ItemsSource="{Binding HairStyles}" SelectedItem="{Binding HairStyle}" Margin="0,2,0,10" />
+
+        <TextBlock Text="Колір шкіри" />
+        <ComboBox ItemsSource="{Binding SkinColors}" SelectedItem="{Binding SkinColor}" Margin="0,2,0,10" />
+
+        <TextBlock Text="Одяг" />
+        <ComboBox ItemsSource="{Binding Outfits}" SelectedItem="{Binding Outfit}" Margin="0,2,0,16" />
+
+        <Button Content="Почати гру" Command="{Binding ConfirmCommand}" Style="{StaticResource MenuButton}" />
+        <Button Content="Скасувати" Command="{Binding CancelCommand}" Style="{StaticResource MenuButton}" />
+    </StackPanel>
+</UserControl>
