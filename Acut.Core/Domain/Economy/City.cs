@@ -61,6 +61,82 @@ public sealed class City
         return building;
     }
 
+    /// <summary>Чи можна покращити будівлю: перевіряє наявність, рівень, статус і наявність валюти.</summary>
+    public bool CanUpgradeBuilding(Building building, out string? reason)
+    {
+        ArgumentNullException.ThrowIfNull(building);
+
+        if (!_buildings.Contains(building))
+        {
+            reason = $"Будівлю «{building.Name}» не знайдено в місті.";
+            return false;
+        }
+
+        if (building.Level >= building.MaxLevel || building.Status == BuildingStatus.MaxLevel)
+        {
+            reason = $"Будівля «{building.Name}» вже досягла максимального рівня ({building.MaxLevel}).";
+            return false;
+        }
+
+        if (building.Status != BuildingStatus.Active)
+        {
+            reason = $"Будівлю «{building.Name}» не можна покращити в поточному стані ({building.Status}).";
+            return false;
+        }
+
+        if (_owner.Gold < building.UpgradeCost)
+        {
+            reason = $"Недостатньо валюти: потрібно {building.UpgradeCost}, є {_owner.Gold}.";
+            return false;
+        }
+
+        reason = null;
+        return true;
+    }
+
+    /// <summary>Спроба покращення будівлі без викидання винятку.</summary>
+    public bool TryUpgradeBuilding(Building building, out string? failureReason)
+    {
+        if (!CanUpgradeBuilding(building, out failureReason))
+            return false;
+
+        return UpgradeBuilding(building);
+    }
+
+    /// <summary>
+    /// Покращує будівлю: перевіряє статус і рівень, списує UpgradeCost,
+    /// змінює стан (Active → Upgrading → Active / MaxLevel) і публікує подію BuildingUpgraded.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">Будівлю не передано.</exception>
+    /// <exception cref="GameRuleException">Будівля не знайдена, вже на MaxLevel, неактивна або не вистачає валюти.</exception>
+    public bool UpgradeBuilding(Building building)
+    {
+        ArgumentNullException.ThrowIfNull(building);
+
+        if (!CanUpgradeBuilding(building, out var reason))
+            throw new GameRuleException(reason!);
+
+        if (!_owner.SpendGold(building.UpgradeCost))
+            throw new GameRuleException($"Недостатньо валюти: потрібно {building.UpgradeCost}, є {_owner.Gold}.");
+
+        if (!building.Upgrade())
+        {
+            _owner.AddGold(building.UpgradeCost);
+            return false;
+        }
+
+        _dispatcher.Publish(new GameEvent(GameEventType.BuildingUpgraded));
+        return true;
+    }
+
+    /// <summary>Покращує будівлю за її ID.</summary>
+    public bool UpgradeBuilding(Guid buildingId)
+    {
+        var building = _buildings.FirstOrDefault(b => b.Id == buildingId)
+            ?? throw new GameRuleException($"Будівлю з ідентифікатором {buildingId} не знайдено в місті.");
+        return UpgradeBuilding(building);
+    }
+
     /// <summary>Додає вже збудовану будівлю (завантаження збереження). Події та оплата не виконуються.</summary>
     public void RestoreBuilding(Building building)
     {
