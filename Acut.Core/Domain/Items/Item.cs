@@ -22,19 +22,29 @@ public abstract class Item : IEquatable<Item>
     public string Description { get; }
     public int Price { get; }
     public int Level { get; protected set; }
+    public virtual int MaxLevel => GameConfig.MaxItemLevel;
+    public virtual int UpgradeCost => Price * Level;
+    public bool CanUpgrade => Level < MaxLevel;
 
     /// <summary>Відновлює рівень предмета із збереження.</summary>
     public void RestoreLevel(int level)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(level, 1);
         Level = level;
+        OnLevelChanged();
     }
 
     public virtual bool Upgrade()
     {
-        // TODO(Етап 6): правила покращення предмета (рівень, вартість).
-        throw new NotImplementedException("Етап 6: Item.Upgrade");
+        if (!CanUpgrade) return false;
+        Level++;
+        OnLevelChanged();
+        return true;
     }
+
+    protected virtual void OnLevelChanged() { }
+
+    public abstract Item Clone();
 
     public bool Equals(Item? other) => other is not null && other.Id == Id;
     public override bool Equals(object? obj) => Equals(obj as Item);
