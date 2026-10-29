@@ -14,6 +14,8 @@ public sealed class Potion : Item
     public PotionEffect Effect { get; }
     public int EffectValue { get; }
 
+    public override Item Clone() => new Potion(Id, Name, Description, Price, Effect, EffectValue, Level);
+
     public void Use(Character target)
     {
         ArgumentNullException.ThrowIfNull(target);

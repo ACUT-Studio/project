@@ -17,4 +17,5 @@ public static class GameConfig
 
     public const int InventoryCapacity = 30;
     public const int MaxPlayerNameLength = 24;
+    public const int MaxItemLevel = 5;
 }

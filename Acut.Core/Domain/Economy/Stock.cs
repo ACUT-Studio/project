@@ -2,6 +2,8 @@ namespace Acut.Core.Domain.Economy;
 
 public sealed class Stock
 {
+    public const decimal MinPrice = 0.01m;
+
     public Stock(int id, string symbol, string name, decimal basePrice, decimal volatility, decimal? price = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(basePrice);
@@ -27,9 +29,24 @@ public sealed class Stock
         Price = price;
     }
 
-    public void Fluctuate()
+    /// <summary>Випадкова зміна ціни в межах Volatility. Ціна завжди більша за нуль.</summary>
+    public void Fluctuate() => Fluctuate(Random.Shared);
+
+    public void Fluctuate(Random random)
     {
-        // TODO(Етап 6): випадкова зміна ціни в межах Volatility, ціна > 0.
-        throw new NotImplementedException("Етап 6: Stock.Fluctuate");
+        ArgumentNullException.ThrowIfNull(random);
+        var delta = (decimal)(random.NextDouble() * 2.0 - 1.0) * Volatility;
+        ApplyPriceDelta(delta);
+    }
+
+    /// <summary>Зміна ціни на заданий відсоток (наприклад, для тестування екстремальних умов).</summary>
+    public void Fluctuate(decimal percentChange) => ApplyPriceDelta(percentChange);
+
+    private void ApplyPriceDelta(decimal delta)
+    {
+        var newPrice = Math.Round(Price * (1m + delta), 2, MidpointRounding.AwayFromZero);
+        if (newPrice < MinPrice)
+            newPrice = MinPrice;
+        Price = newPrice;
     }
 }

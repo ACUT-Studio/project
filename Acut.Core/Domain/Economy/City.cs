@@ -80,11 +80,16 @@ public sealed class City
     }
 
     /// <summary>Один тік симуляції. Викликається з UI за таймером; у стані «Пауза» не викликається.</summary>
-    public void Tick() => CollectAllIncome();
+    public void Tick()
+    {
+        CollectAllIncome();
+        Market.UpdatePrices();
+    }
 
     private void AddBuilding(Building building)
     {
         if (building is MarketBuilding market) market.Market = Market;
+        if (building is WorkshopBuilding workshop) workshop.Dispatcher = _dispatcher;
         _buildings.Add(building);
     }
 }

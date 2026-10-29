@@ -14,6 +14,15 @@ public sealed class Inventory
     /// <summary>Максимальна кількість різних стаків.</summary>
     public int Capacity { get; }
 
+    public bool CanAddItem(Item item, int qty = 1)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        ArgumentOutOfRangeException.ThrowIfLessThan(qty, 1);
+
+        if (_stacks.ContainsKey(item.Id)) return true;
+        return _stacks.Count < Capacity;
+    }
+
     public bool AddItem(Item item, int qty = 1)
     {
         ArgumentNullException.ThrowIfNull(item);

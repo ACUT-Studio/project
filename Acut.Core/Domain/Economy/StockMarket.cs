@@ -11,21 +11,61 @@ public sealed class StockMarket
 
     public List<Stock> Stocks { get; }
 
+    /// <summary>
+    /// Купує задану кількість акцій: списує qty * Price у гравця, додає до StockHoldings.
+    /// Відхиляється без побічних ефектів, якщо не вистачає золота або qty <= 0.
+    /// </summary>
     public bool Buy(Stock stock, int qty, Player player)
     {
-        // TODO(Етап 6): списати qty * Price, збільшити Player.StockHoldings.
-        throw new NotImplementedException("Етап 6: StockMarket.Buy");
+        ArgumentNullException.ThrowIfNull(stock);
+        ArgumentNullException.ThrowIfNull(player);
+        if (qty <= 0) return false;
+
+        var marketStock = Stocks.FirstOrDefault(s => s.Id == stock.Id) ?? stock;
+        var totalCost = (int)Math.Round(marketStock.Price * qty, MidpointRounding.AwayFromZero);
+        if (totalCost <= 0) totalCost = 1;
+
+        if (player.Gold < totalCost)
+            return false;
+
+        if (!player.SpendGold(totalCost))
+            return false;
+
+        player.StockHoldings.TryGetValue(marketStock.Id, out var currentQty);
+        player.StockHoldings[marketStock.Id] = currentQty + qty;
+        return true;
     }
 
+    /// <summary>
+    /// Продає задану кількість акцій: зменшує StockHoldings, нараховує виручку qty * Price.
+    /// Продаж понад наявне відхиляється без побічних ефектів.
+    /// </summary>
     public bool Sell(Stock stock, int qty, Player player)
     {
-        // TODO(Етап 6): зменшити Player.StockHoldings, нарахувати qty * Price.
-        throw new NotImplementedException("Етап 6: StockMarket.Sell");
+        ArgumentNullException.ThrowIfNull(stock);
+        ArgumentNullException.ThrowIfNull(player);
+        if (qty <= 0) return false;
+
+        var marketStock = Stocks.FirstOrDefault(s => s.Id == stock.Id) ?? stock;
+        player.StockHoldings.TryGetValue(marketStock.Id, out var currentQty);
+        if (currentQty < qty)
+            return false;
+
+        player.StockHoldings[marketStock.Id] = currentQty - qty;
+        if (player.StockHoldings[marketStock.Id] == 0)
+            player.StockHoldings.Remove(marketStock.Id);
+
+        var revenue = (int)Math.Round(marketStock.Price * qty, MidpointRounding.AwayFromZero);
+        player.AddGold(revenue);
+        return true;
     }
 
+    /// <summary>Оновлює ціни всіх акцій на ринку (викликає Fluctuate).</summary>
     public void UpdatePrices()
     {
-        // TODO(Етап 6): викликати Fluctuate() для кожної акції.
-        throw new NotImplementedException("Етап 6: StockMarket.UpdatePrices");
+        foreach (var stock in Stocks)
+        {
+            stock.Fluctuate();
+        }
     }
 }
