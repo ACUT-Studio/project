@@ -24,7 +24,7 @@ public sealed class Player : Character
 
         Inventory = new Inventory();
         SkillTree = new SkillTree();
-        QuestLog = new QuestLog();
+        QuestLog = new QuestLog { Player = this };
         Statistics = new PlayerStatistics();
         Achievements = new AchievementTracker(Statistics);
     }

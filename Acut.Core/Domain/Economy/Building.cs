@@ -31,6 +31,9 @@ public abstract class Building
     /// <summary>Дохід за один тік з урахуванням рівня.</summary>
     public int IncomePerTick => _baseIncomePerTick * Level;
 
+    /// <summary>Чи доступне покращення будівлі за рівнем і статусом.</summary>
+    public bool CanUpgrade => Status == BuildingStatus.Active && Level < MaxLevel;
+
     /// <summary>Завершує будівництво. Етап 5: будівництво миттєве (UnderConstruction → Active).</summary>
     public void Build()
     {
@@ -39,10 +42,19 @@ public abstract class Building
         Status = BuildingStatus.Active;
     }
 
+    /// <summary>
+    /// Покращує будівлю: Active → Upgrading → Active / MaxLevel.
+    /// Повертає false, якщо будівля вже має максимальний рівень або неактивна.
+    /// </summary>
     public virtual bool Upgrade()
     {
-        // TODO(Етап 6): Level++, переходи Active → Upgrading → Active / MaxLevel.
-        throw new NotImplementedException("Етап 6: Building.Upgrade");
+        if (Status != BuildingStatus.Active || Level >= MaxLevel)
+            return false;
+
+        Status = BuildingStatus.Upgrading;
+        Level++;
+        Status = Level >= MaxLevel ? BuildingStatus.MaxLevel : BuildingStatus.Active;
+        return true;
     }
 
     /// <summary>Дохід за тік: лише для активних будівель.</summary>

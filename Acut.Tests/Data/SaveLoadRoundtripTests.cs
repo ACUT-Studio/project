@@ -1,4 +1,5 @@
 using Acut.Core.Domain.Combat;
+using Acut.Core.Domain.Economy;
 using Acut.Core.Domain.Progress;
 using Acut.Core.Services;
 using Xunit;
@@ -55,6 +56,35 @@ public class SaveLoadRoundtripTests
         var firstQuest = loaded.Player.QuestLog.AllQuests.First(q => q.Id == 1);
         Assert.Equal(QuestStatus.Completed, firstQuest.Status);
         Assert.Equal(firstQuest.Target, firstQuest.Progress);
+    }
+
+    [Fact]
+    public void SaveAndLoad_RestoresUpgradedBuilding_UnlockedSkill_AndClaimedQuest()
+    {
+        using var db = new TestDatabase();
+        var session = NewGame(db);
+        var hutType = db.Catalog.GetBuildingTypes().First(t => t.Id == 1);
+        var hut = session.City.BuildBuilding(hutType);
+        session.City.UpgradeBuilding(hut); // Level 2, Active
+
+        // Навичка
+        var basicSkill = session.Player.SkillTree.Skills.First(s => s.Id == 1);
+        session.Player.SkillTree.Unlock(basicSkill);
+
+        // Завдання
+        var quest = session.Player.QuestLog.AllQuests.First(q => q.Id == 1);
+        session.Player.QuestLog.ClaimReward(quest, session.Player);
+
+        session.Save();
+
+        var loaded = db.Saves.Load(session.SessionId)!;
+        var loadedHut = loaded.City.GetBuildings().Single();
+        Assert.Equal(2, loadedHut.Level);
+        Assert.Equal(BuildingStatus.Active, loadedHut.Status);
+
+        Assert.True(loaded.Player.SkillTree.IsUnlocked(1));
+        var loadedQuest = loaded.Player.QuestLog.AllQuests.First(q => q.Id == 1);
+        Assert.Equal(QuestStatus.RewardClaimed, loadedQuest.Status);
     }
 
     [Fact]

@@ -28,6 +28,8 @@ public sealed class GameEventDispatcher
     public void Attach(Player player)
     {
         ArgumentNullException.ThrowIfNull(player);
+        player.SkillTree.Dispatcher = this;
+        player.QuestLog.Player = player;
         Subscribe(player.Statistics.Record);
         Subscribe(player.QuestLog.UpdateProgress);
         Subscribe(player.Achievements.CheckTriggers);
