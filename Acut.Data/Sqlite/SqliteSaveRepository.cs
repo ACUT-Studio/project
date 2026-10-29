@@ -224,8 +224,16 @@ public sealed class SqliteSaveRepository : ISaveRepository
         using var connection = _factory.CreateConnection();
         var id = saveId.ToString();
 
-        var createdRaw = SqlHelper.Scalar(connection, null, "SELECT CreatedAt FROM GameSave WHERE SaveId = $id", ("$id", id));
-        if (createdRaw is not string createdAt) return null;
+        string? createdAt = null;
+        string? savedStateStr = null;
+
+        SqlHelper.Read(connection, "SELECT CreatedAt, CurrentState FROM GameSave WHERE SaveId = $id", r =>
+        {
+            createdAt = r.GetStr("CreatedAt");
+            savedStateStr = r.GetStr("CurrentState");
+        }, ("$id", id));
+
+        if (createdAt is null) return null;
 
         // Довідкові дані. Кожен виклик повертає нові об'єкти, які нижче отримують стан збереження.
         var items = _catalog.GetItems().ToDictionary(i => i.Id);
@@ -254,7 +262,11 @@ public sealed class SqliteSaveRepository : ISaveRepository
         var city = LoadCity(connection, player, dispatcher, market, id, buildingTypes);
         var battle = LoadBattle(connection, player, dispatcher, id, enemies);
 
-        var state = battle is null ? GameState.City : GameState.Battle;
+        // Відновлюємо реальний збережений стан, а якщо він відсутній — визначаємо за наявністю бою
+        var state = Enum.TryParse<GameState>(savedStateStr, out var parsedState)
+            ? parsedState
+            : (battle is null ? GameState.City : GameState.Battle);
+
         var session = new GameSession(saveId, SaveMapper.ParseDate(createdAt), state, player, city, dispatcher);
         if (battle is not null) session.RestoreBattle(battle);
         return session;
