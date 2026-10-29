@@ -23,7 +23,6 @@ public class CityTests
        
         var (city, player, _) = Create(gold: 50);
 
-        
         Assert.Throws<GameRuleException>(() => city.BuildBuilding(FakeCatalog.Hut));
 
         Assert.Equal(50, player.Gold);
@@ -36,10 +35,8 @@ public class CityTests
       
         var (city, player, _) = Create(gold: 250);
 
-       
         var building = city.BuildBuilding(FakeCatalog.Hut);
 
-       
         Assert.Equal(150, player.Gold);
         Assert.Equal(BuildingStatus.Active, building.Status);
         Assert.Single(city.GetBuildings());
@@ -53,7 +50,6 @@ public class CityTests
         var (city, player, _) = Create(gold: 1000);
         player.SkillTree.Initialize(new FakeCatalog().GetSkills());
 
-        
         Assert.Throws<GameRuleException>(() => city.BuildBuilding(FakeCatalog.Mine));
 
         Assert.Equal(1000, player.Gold);
@@ -69,7 +65,6 @@ public class CityTests
         var goldAfterBuild = player.Gold;
 
         city.Tick();
-
        
         Assert.Equal(goldAfterBuild + FakeCatalog.Hut.IncomePerTick, player.Gold);
         Assert.Equal(FakeCatalog.Hut.IncomePerTick, player.Statistics.TotalGoldEarned);
@@ -81,7 +76,6 @@ public class CityTests
        
         var (city, _, _) = Create(gold: 500);
 
-       
         city.BuildBuilding(FakeCatalog.Hut);
         city.BuildBuilding(FakeCatalog.Hut);
 
@@ -111,12 +105,10 @@ public class CityTests
         var initialGold = player.Gold;
         var incomePerTick = FakeCatalog.Hut.IncomePerTick;
 
-        
         city.Tick();
         city.Tick();
         city.Tick();
 
-        
         Assert.Equal(initialGold + (incomePerTick * 3), player.Gold);
         Assert.Equal(incomePerTick * 3, player.Statistics.TotalGoldEarned);
     }
@@ -127,9 +119,7 @@ public class CityTests
        
         var (city, player, _) = Create(gold: 100);
 
-       
         city.Tick();
-
 
         Assert.Equal(100, player.Gold);
         Assert.Equal(0, player.Statistics.TotalGoldEarned);
@@ -141,7 +131,6 @@ public class CityTests
         
         var (city, _, _) = Create(gold: 100);
 
-       
         Assert.Equal(0, city.Population);
     }
 

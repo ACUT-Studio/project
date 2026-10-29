@@ -9,8 +9,7 @@ public class PlayerTests
     private static Player CreatePlayer(int gold = 0) =>
         new("Тест", AppearanceSettings.Default, gold: gold);
 
-    #region Наявні покращені тести
-
+   
     [Fact]
     public void SpendGold_NotEnough_ReturnsFalseAndKeepsBalance()
     {
@@ -89,10 +88,6 @@ public class PlayerTests
         // Act & Assert
         Assert.Throws<ArgumentException>(() => new Player("  ", AppearanceSettings.Default));
     }
-
-    #endregion
-
-    #region Нові додаткові тести
 
     [Fact]
     public void SpendGold_ExactBalance_ReturnsTrueAndLeavesZeroGold()
@@ -178,5 +173,4 @@ public class PlayerTests
         Assert.Equal(200, player.Gold);
     }
 
-    #endregion
 }
