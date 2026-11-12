@@ -6,7 +6,7 @@ public sealed class DefensiveStrategy : IEnemyStrategy
 {
     public BattleAction ChooseAction(Enemy self, Player target)
     {
-        // TODO(Етап 6): логіка вибору дії для стратегії Defensive.
-        throw new NotImplementedException("Етап 6: DefensiveStrategy.ChooseAction");
+        if (self.Health * 4 <= self.MaxHealth) return BattleAction.Defend;
+        return target.Health * 2 <= target.MaxHealth ? BattleAction.Defend : BattleAction.Attack;
     }
 }

@@ -235,6 +235,30 @@
             </Border>
         </Grid>
 
+        <Border x:Name="EnemySelectionPanel" Background="#D0252523" Visibility="{Binding IsEnemySelectionOpen, Converter={StaticResource BooleanToVisibility}}">
+            <Border Style="{StaticResource BattlePanel}" Width="560" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <DockPanel>
+                    <Button DockPanel.Dock="Bottom" Content="Скасувати" Command="{Binding CloseEnemySelectionCommand}" Style="{StaticResource BattleAction}" />
+                    <TextBlock DockPanel.Dock="Top" Text="Оберіть ворога" Style="{StaticResource BattleHeading}" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Enemies}">
+                            <ItemsControl.ItemTemplate><DataTemplate>
+                                <Border Style="{StaticResource BattlePanel}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource BattleHeading}" />
+                                        <TextBlock Style="{StaticResource BattleText}"><Run Text="HP: " /><Run Text="{Binding MaxHealth}" /><Run Text=" · Атака: " /><Run Text="{Binding AttackPower}" /><Run Text=" · Захист: " /><Run Text="{Binding Defense}" /></TextBlock>
+                                        <TextBlock Style="{StaticResource BattleText}"><Run Text="Нагорода: " /><Run Text="{Binding RewardGold}" /><Run Text=" золота, " /><Run Text="{Binding RewardExperience}" /><Run Text=" досвіду" /></TextBlock>
+                                        <Button Content="Почати бій" Style="{StaticResource BattleAction}"
+                                                Command="{Binding DataContext.StartBattleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate></ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Border>
+
         <Border Background="#C0252523" Visibility="{Binding IsPaused, Converter={StaticResource BooleanToVisibility}}">
             <Border Style="{StaticResource MapPanel}" Width="390" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>

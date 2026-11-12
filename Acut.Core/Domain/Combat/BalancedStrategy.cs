@@ -6,7 +6,6 @@ public sealed class BalancedStrategy : IEnemyStrategy
 {
     public BattleAction ChooseAction(Enemy self, Player target)
     {
-        // TODO(Етап 6): логіка вибору дії для стратегії Balanced.
-        throw new NotImplementedException("Етап 6: BalancedStrategy.ChooseAction");
+        return self.Health * 3 <= self.MaxHealth ? BattleAction.Defend : BattleAction.Attack;
     }
 }

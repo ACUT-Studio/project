@@ -350,6 +350,7 @@ public sealed class LobbyTests
         app.InitializeComponent();
         try
         {
+            BattleTests.VerifyViews();
             var context = CreateContext();
             using var vm = context.City;
             for (var id = 1; id <= 6; id++)

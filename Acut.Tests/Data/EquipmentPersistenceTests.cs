@@ -75,6 +75,8 @@ public sealed class EquipmentPersistenceTests
             command.CommandText = """
                 DROP INDEX IX_InventoryItem_EquipmentSlot;
                 ALTER TABLE InventoryItem DROP COLUMN EquipmentSlot;
+                ALTER TABLE ActiveBattle DROP COLUMN PlayerDefending;
+                ALTER TABLE ActiveBattle DROP COLUMN EnemyDefending;
                 PRAGMA user_version = 2;
                 """;
             command.ExecuteNonQuery();

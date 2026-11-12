@@ -1,0 +1,50 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="BattlePanel" TargetType="Border" BasedOn="{StaticResource MapPanel}">
+        <Setter Property="Background" Value="#262422" />
+        <Setter Property="Margin" Value="8" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+    <Style x:Key="BattleText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#FFF6D9" />
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Margin" Value="0,4" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style x:Key="BattleHeading" TargetType="TextBlock" BasedOn="{StaticResource BattleText}">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style x:Key="BattleHealth" TargetType="ProgressBar">
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Foreground" Value="#399B48" />
+        <Setter Property="Background" Value="#151715" />
+        <Setter Property="Margin" Value="0,8" />
+    </Style>
+    <Style x:Key="BattleAction" TargetType="Button" BasedOn="{StaticResource MapAction}">
+        <Setter Property="Margin" Value="6" />
+        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="FontSize" Value="17" />
+    </Style>
+    <Style x:Key="BattlePlatform" TargetType="Ellipse">
+        <Setter Property="Fill" Value="#84808A" />
+        <Setter Property="Stroke" Value="#151715" />
+        <Setter Property="StrokeThickness" Value="3" />
+        <Setter Property="Height" Value="44" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="18,0" />
+    </Style>
+    <!-- Умовний силует ворога спільний для записів каталогу; характеристики завжди реальні. -->
+    <DrawingImage x:Key="EnemyPortrait">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#5361A8" Geometry="M 5,95 L 5,60 25,35 45,10 65,15 57,36 85,60 85,95 Z">
+                    <GeometryDrawing.Pen><Pen Brush="#151715" Thickness="4" /></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#FFF6D9" Geometry="M 27,59 L 37,59 37,72 27,72 Z M 58,59 L 68,59 68,72 58,72 Z" />
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+</ResourceDictionary>
