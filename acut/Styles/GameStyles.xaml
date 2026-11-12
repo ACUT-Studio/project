@@ -1,0 +1,53 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    <SolidColorBrush x:Key="LobbyBackground" Color="#303635" />
+    <SolidColorBrush x:Key="LobbyPanel" Color="#F6F3E9" />
+    <Style x:Key="MenuButton" TargetType="Button">
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="Margin" Value="0,6" />
+        <Setter Property="MinWidth" Value="220" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+    <Style x:Key="Title" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+    <Style x:Key="LobbyCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource LobbyPanel}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="6" />
+    </Style>
+    <Style x:Key="LobbyButton" TargetType="Button">
+        <Setter Property="Background" Value="#E9D7A0" />
+        <Setter Property="Foreground" Value="#252D2A" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinHeight" Value="36" />
+    </Style>
+    <Style x:Key="LobbyStat" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#F6F3E9" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="12,0" />
+    </Style>
+    <Style x:Key="ValidationMessage" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#A02B26" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,4,0,12" />
+    </Style>
+    <DrawingBrush x:Key="CityRoads" TileMode="Tile" Viewport="0,0,220,160" ViewportUnits="Absolute">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#606B5D" Geometry="M0,0 H220 V160 H0 Z" />
+                <GeometryDrawing Brush="#404845" Geometry="M0,136 H220 V160 H0 Z M196,0 H220 V160 H196 Z" />
+                <GeometryDrawing Geometry="M0,148 H220 M208,0 V160">
+                    <GeometryDrawing.Pen><Pen Brush="#9B9F86" Thickness="1" DashStyle="{x:Static DashStyles.Dash}" /></GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+</ResourceDictionary>

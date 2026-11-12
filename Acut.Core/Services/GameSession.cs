@@ -52,11 +52,9 @@ public sealed class GameSession
     {
         ArgumentNullException.ThrowIfNull(catalog);
 
-        var name = playerName?.Trim() ?? string.Empty;
-        if (name.Length == 0)
-            throw new GameRuleException("Введіть ім'я персонажа.");
-        if (name.Length > GameConfig.MaxPlayerNameLength)
-            throw new GameRuleException($"Ім'я не може бути довшим за {GameConfig.MaxPlayerNameLength} символів.");
+        var error = GetPlayerNameError(playerName);
+        if (error is not null) throw new GameRuleException(error);
+        var name = playerName.Trim();
 
         dispatcher ??= new GameEventDispatcher();
 
@@ -71,6 +69,16 @@ public sealed class GameSession
         var session = new GameSession(Guid.NewGuid(), DateTime.UtcNow, GameState.CharacterCreation, player, city, dispatcher);
         session.ChangeState(GameState.City);
         return session;
+    }
+
+    /// <summary>Спільна перевірка імені для створення гри та інтерфейсу.</summary>
+    public static string? GetPlayerNameError(string? playerName)
+    {
+        var name = playerName?.Trim() ?? string.Empty;
+        if (name.Length == 0) return "Введіть ім'я персонажа.";
+        if (name.Length > GameConfig.MaxPlayerNameLength)
+            return $"Ім'я не може бути довшим за {GameConfig.MaxPlayerNameLength} символів.";
+        return null;
     }
 
     public void AttachSaveManager(SaveManager saveManager) =>

@@ -1,77 +1,107 @@
 <UserControl x:Class="acut.Views.CityView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid Background="{StaticResource LobbyBackground}">
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,12">
+                <Button DockPanel.Dock="Right" Content="Пауза · Esc" Style="{StaticResource LobbyButton}"
+                        Command="{Binding TogglePauseCommand}" />
+                <StackPanel DockPanel.Dock="Left" Margin="8,0,24,0">
+                    <TextBlock Text="{Binding PlayerName}" Foreground="#F6F3E9" FontSize="22" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Level, StringFormat='Рівень {0}'}" Foreground="#E9D7A0" />
+                </StackPanel>
+                <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Population, StringFormat='Населення: {0}'}" Style="{StaticResource LobbyStat}" />
+                    <TextBlock Text="{Binding Gold, StringFormat='Золото: {0}'}" Style="{StaticResource LobbyStat}" />
+                    <TextBlock Text="{Binding IncomePerTick, StringFormat='+{0} / тік'}" Style="{StaticResource LobbyStat}" />
+                </WrapPanel>
+            </DockPanel>
 
-        <!-- Шапка -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-            <TextBlock Text="{Binding CityName}" FontSize="24" FontWeight="Bold" Margin="0,0,24,0" />
-            <TextBlock Text="{Binding PlayerName, StringFormat='Гравець: {0}'}" Margin="0,0,16,0" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding Level, StringFormat='Рівень: {0}'}" Margin="0,0,16,0" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding Gold, StringFormat='Валюта: {0}'}" Margin="0,0,16,0" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding Population, StringFormat='Населення: {0}'}" VerticalAlignment="Center" />
-        </StackPanel>
-
-        <!-- Список збудованого й каталог будівель -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <GroupBox Header="Місто" Grid.Column="0" Margin="0,0,8,0">
-                <ListView ItemsSource="{Binding Buildings}">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Будівля" DisplayMemberBinding="{Binding Name}" Width="180" />
-                            <GridViewColumn Header="Рівень" DisplayMemberBinding="{Binding Level}" Width="60" />
-                            <GridViewColumn Header="Стан" DisplayMemberBinding="{Binding Status}" Width="110" />
-                            <GridViewColumn Header="Дохід/тік" DisplayMemberBinding="{Binding Income}" Width="80" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-            </GroupBox>
-
-            <GroupBox Header="Будівництво" Grid.Column="1" Margin="8,0,0,0">
-                <ItemsControl ItemsSource="{Binding BuildOptions}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                    <TextBlock>
-                                        <Run Text="{Binding BuildCost, Mode=OneWay}" /> валюти,
-                                        дохід <Run Text="{Binding Income, Mode=OneWay}" />/тік ·
-                                        <Run Text="{Binding Hint, Mode=OneWay}" />
-                                    </TextBlock>
-                                </StackPanel>
-                                <Button Grid.Column="1" Content="Побудувати" Padding="12,4"
-                                        Command="{Binding DataContext.BuildCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" />
+            <Grid Grid.Row="1" IsEnabled="{Binding IsPlaying}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="320" />
+                </Grid.ColumnDefinitions>
+                <Border Background="{StaticResource CityRoads}" CornerRadius="8" Margin="0,0,12,0">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                        <TextBlock Text="{Binding CityName}" Foreground="White" FontSize="24" FontWeight="Bold" Margin="20" />
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <Grid>
+                                <TextBlock Text="Місто чекає на першу будівлю. Оберіть її в панелі будівництва."
+                                           Foreground="White" TextWrapping="Wrap" Margin="24"
+                                           Visibility="{Binding IsCityEmpty, Converter={StaticResource BooleanToVisibility}}" />
+                                <ItemsControl ItemsSource="{Binding Buildings}">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource LobbyCard}" Width="204">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontSize="17" FontWeight="Bold" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding Level, StringFormat='Рівень {0}'}" Margin="0,6,0,0" />
+                                                    <TextBlock Text="{Binding Status}" />
+                                                    <TextBlock Text="{Binding Income, StringFormat='Дохід: +{0} / тік'}" Margin="0,6" />
+                                                    <TextBlock Text="{Binding UpgradeCost, StringFormat='Покращення: {0} золота'}" />
+                                                    <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" FontSize="11" Margin="0,6" />
+                                                    <Button Content="Покращити" Style="{StaticResource LobbyButton}"
+                                                            Command="{Binding DataContext.UpgradeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" ToolTip="{Binding Hint}" ToolTipService.ShowOnDisabled="True" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </GroupBox>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource LobbyCard}" Margin="0">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Будівництво" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding BuildOptions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#D4D2C5" BorderThickness="0,0,0,1" Padding="0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" />
+                                                <TextBlock Text="{Binding BuildCost, StringFormat='Ціна: {0} золота'}" Margin="0,4" />
+                                                <TextBlock Text="{Binding Income, StringFormat='Дохід: +{0} / тік'}" />
+                                                <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" Margin="0,4" />
+                                                <Button Content="Побудувати" Style="{StaticResource LobbyButton}"
+                                                        Command="{Binding DataContext.BuildCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" ToolTip="{Binding Hint}" ToolTipService.ShowOnDisabled="True" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </Grid>
+
+            <DockPanel Grid.Row="2" Margin="0,12,0,0">
+                <Button DockPanel.Dock="Right" Content="Зберегти" Command="{Binding SaveCommand}" Style="{StaticResource LobbyButton}" />
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#FFE6A1" TextWrapping="Wrap" VerticalAlignment="Center" Margin="8" />
+            </DockPanel>
         </Grid>
 
-        <!-- Низ -->
-        <DockPanel Grid.Row="2" Margin="0,12,0,0">
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="Зберегти" Command="{Binding SaveCommand}" Padding="16,6" Margin="0,0,8,0" />
-                <Button Content="Зберегти та вийти в меню" Command="{Binding ExitToMenuCommand}" Padding="16,6" />
-            </StackPanel>
-            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"
-                       Visibility="{Binding StatusMessage, Converter={StaticResource NullOrEmptyToVisibility}}" />
-        </DockPanel>
+        <Border Background="#B0202523" Visibility="{Binding IsPaused, Converter={StaticResource BooleanToVisibility}}">
+            <Border Style="{StaticResource LobbyCard}" Width="390" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="Пауза" Style="{StaticResource Title}" />
+                    <TextBlock Text="Симуляцію зупинено. Дохід не нараховується." TextWrapping="Wrap" Margin="0,0,0,16" />
+                    <Button Content="Продовжити" Command="{Binding ResumeCommand}" Style="{StaticResource LobbyButton}" />
+                    <Button Content="Зберегти та вийти в меню" Command="{Binding ExitToMenuCommand}" Style="{StaticResource LobbyButton}" />
+                    <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource ValidationMessage}" />
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>
