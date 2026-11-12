@@ -177,6 +177,30 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
+    <DrawingImage x:Key="InventoryWeaponIcon">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#C6D0D1" Geometry="M28,2 L38,2 38,12 18,36 10,28 Z" />
+                <GeometryDrawing Brush="#E2B451" Geometry="M5,24 L24,43 28,39 9,20 Z" />
+                <GeometryDrawing Brush="#392419" Geometry="M6,34 L14,42 7,49 0,42 Z" />
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    <DrawingImage x:Key="ProgressBookIcon">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#6D4837" Geometry="M2,8 Q14,3 24,10 Q34,3 46,8 V44 Q34,39 24,46 Q14,39 2,44 Z">
+                    <GeometryDrawing.Pen><Pen Brush="#141614" Thickness="2" /></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#EAE4CC" Geometry="M5,5 Q15,1 24,8 Q33,1 43,5 V38 Q33,34 24,41 Q15,34 5,38 Z">
+                    <GeometryDrawing.Pen><Pen Brush="#141614" Thickness="2" /></GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M24,8 V41 M10,13 L19,15 M10,21 L19,23 M10,29 L19,31 M29,15 L38,13 M29,23 L38,21 M29,31 L38,29">
+                    <GeometryDrawing.Pen><Pen Brush="#8A7959" Thickness="2" /></GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
     <DrawingImage x:Key="PotionIcon">
         <DrawingImage.Drawing>
             <DrawingGroup>

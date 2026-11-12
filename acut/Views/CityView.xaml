@@ -94,6 +94,9 @@
                 <TextBlock Text="{Binding StatusMessage}" Foreground="#F1DB94" TextWrapping="Wrap"
                            VerticalAlignment="Center" Margin="8,0,20,0" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" IsEnabled="{Binding IsPlaying}">
+                    <Button Command="{Binding OpenProgressCommand}" Style="{StaticResource MapDockAction}" AutomationProperties.Name="Прогрес">
+                        <StackPanel><Image x:Name="ProgressDockIcon" Source="{StaticResource ProgressBookIcon}" Height="39" /><TextBlock Text="Прогрес" HorizontalAlignment="Center" /></StackPanel>
+                    </Button>
                     <Button Command="{Binding OpenInventoryCommand}" Style="{StaticResource MapDockAction}">
                         <StackPanel><Image Source="{StaticResource InventoryIcon}" Height="39" /><TextBlock Text="Інвентар" HorizontalAlignment="Center" /></StackPanel>
                     </Button>
@@ -106,8 +109,8 @@
                     <Button Command="{Binding OpenMarketCommand}" Style="{StaticResource MapDockAction}" ToolTip="{Binding MarketHint}" ToolTipService.ShowOnDisabled="True">
                         <StackPanel><Image Source="{StaticResource BuildingTexture6}" Height="39" /><TextBlock Text="Ринок" HorizontalAlignment="Center" /></StackPanel>
                     </Button>
-                    <Button Command="{Binding OpenBattleCommand}" Style="{StaticResource MapDockAction}">
-                        <TextBlock Text="В БІЙ" FontSize="22" FontWeight="Bold" />
+                    <Button Command="{Binding OpenBattleCommand}" Style="{StaticResource MapDockAction}" AutomationProperties.Name="В бій">
+                        <StackPanel><Image x:Name="BattleDockIcon" Source="{StaticResource InventoryWeaponIcon}" Height="39" /><TextBlock Text="В БІЙ" HorizontalAlignment="Center" /></StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -234,6 +237,15 @@
                 </DockPanel>
             </Border>
         </Grid>
+
+        <Border x:Name="ProgressPanel" Background="#F0252523" Padding="24"
+                Visibility="{Binding IsProgressOpen, Converter={StaticResource BooleanToVisibility}}">
+            <DockPanel>
+                <Button DockPanel.Dock="Top" Content="Повернутися до міста" HorizontalAlignment="Right"
+                        Command="{Binding CloseProgressCommand}" Style="{StaticResource MapAction}" Margin="0,0,0,12" />
+                <ContentControl Content="{Binding Progress}" />
+            </DockPanel>
+        </Border>
 
         <Border x:Name="EnemySelectionPanel" Background="#D0252523" Visibility="{Binding IsEnemySelectionOpen, Converter={StaticResource BooleanToVisibility}}">
             <Border Style="{StaticResource BattlePanel}" Width="560" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center">

@@ -63,7 +63,9 @@ public class DatabaseInitializerTests
 
         // Act & Assert
         Assert.Contains(skills[1], skills[2].Prerequisites);
-        Assert.Empty(skills[3].UnlocksBuildings); // Доступ до ринку тепер відкриває сама будівля.
+        Assert.Equal(new[] { 2, 4 }, skills[1].UnlocksBuildings.Select(b => b.Id).OrderBy(id => id));
+        Assert.Equal(5, Assert.Single(skills[2].UnlocksBuildings).Id);
+        Assert.Equal(6, Assert.Single(skills[3].UnlocksBuildings).Id);
     }
 
     [Fact]

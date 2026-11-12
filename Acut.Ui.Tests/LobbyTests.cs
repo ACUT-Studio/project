@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using Acut.Core.Domain.Economy;
 using Acut.Core.Abstractions;
 using Acut.Core.Domain;
+using Acut.Core.Domain.Progress;
 using Acut.Core.Services;
 using Acut.Tests.Core;
 using acut.Services;
@@ -17,6 +18,108 @@ namespace Acut.Ui.Tests;
 
 public sealed class LobbyTests
 {
+    [Fact]
+    public void Progress_LearningImmediatelyEnablesRequiredBuildingPurchase() => RunSta(() =>
+    {
+        var context = CreateContext();
+        using var city = context.City;
+        var locked = city.BuildOptions.Single(o => o.Type.Id == FakeCatalog.Mine.Id);
+        Assert.False(locked.IsAvailable);
+        Assert.Contains("Основи будівництва", locked.Hint);
+        Assert.False(city.BuildCommand.CanExecute(locked));
+        var resources = context.Session.Player.Resources;
+        city.BuildCommand.Execute(locked);
+        Assert.Empty(city.Buildings);
+        Assert.Equal(resources, context.Session.Player.Resources);
+        city.Progress.LearnCommand.Execute(Assert.Single(city.Progress.Skills));
+        var available = city.BuildOptions.Single(o => o.Type.Id == FakeCatalog.Mine.Id);
+        Assert.True(available.IsAvailable);
+        Assert.True(city.BuildCommand.CanExecute(available));
+        city.BuildCommand.Execute(available);
+        Assert.Equal(FakeCatalog.Mine.Id, Assert.Single(city.Buildings).TypeId);
+    });
+
+    [Fact]
+    public void Progress_LearningUsesPointsAndPrerequisites() => RunSta(() =>
+    {
+        var context = CreateContext();
+        using var city = context.City;
+        var root = new Skill(10, "Основи", "", 1);
+        var child = new Skill(11, "Розвиток", "", 2);
+        child.Prerequisites.Add(root);
+        var tree = context.Session.Player.SkillTree;
+        tree.Initialize([root, child]);
+        tree.SkillPoints = 3;
+        city.OpenProgressCommand.Execute(null);
+        var progress = city.Progress;
+        Assert.True(city.IsProgressOpen);
+        Assert.Equal("Доступна", progress.Skills[0].State);
+        Assert.Equal("Заблокована", progress.Skills[1].State);
+        Assert.Contains("Основи", progress.Skills[1].Prerequisites);
+        progress.LearnCommand.Execute(progress.Skills[1]);
+        Assert.Equal(3, tree.SkillPoints);
+        progress.LearnCommand.Execute(progress.Skills[0]);
+        Assert.True(root.IsUnlocked);
+        Assert.Equal(2, progress.SkillPoints);
+        Assert.Equal("Вивчена", progress.Skills[0].State);
+        Assert.False(progress.LearnCommand.CanExecute(progress.Skills[0]));
+        Assert.Equal("Доступна", progress.Skills[1].State);
+        progress.LearnCommand.Execute(progress.Skills[1]);
+        Assert.True(child.IsUnlocked);
+        Assert.Equal(0, progress.SkillPoints);
+        city.CloseProgressCommand.Execute(null);
+        Assert.False(city.IsProgressOpen);
+    });
+
+    [Fact]
+    public void Progress_QuestRewardsRefreshCityAndCannotBeClaimedTwice() => RunSta(() =>
+    {
+        var context = CreateContext();
+        using var city = context.City;
+        var quest = new Quest(50, "Будівничий", "Збудуйте хатину", GameEventType.BuildingBuilt, 1, 100, 10);
+        context.Session.Player.QuestLog.AddQuest(quest);
+        city.OpenProgressCommand.Execute(null);
+        var progress = city.Progress;
+        var row = progress.Quests.Single(q => q.Quest == quest);
+        Assert.False(progress.ClaimRewardCommand.CanExecute(row));
+        progress.ClaimRewardCommand.Execute(row);
+        city.BuildCommand.Execute(city.BuildOptions.Single(o => o.Type.Id == FakeCatalog.Hut.Id));
+        row = progress.Quests.Single(q => q.Quest == quest);
+        Assert.Equal(1, row.Progress);
+        Assert.True(progress.ClaimRewardCommand.CanExecute(row));
+        var gold = city.Gold;
+        var experience = city.Experience;
+        progress.ClaimRewardCommand.Execute(row);
+        Assert.Equal(gold + quest.RewardGold, city.Gold);
+        Assert.Equal(experience + quest.RewardExperience, city.Experience);
+        Assert.Equal("Нагороду отримано", progress.Quests.Single(q => q.Quest == quest).State);
+        progress.ClaimRewardCommand.Execute(row);
+        Assert.Equal(gold + quest.RewardGold, city.Gold);
+        Assert.False(progress.ClaimRewardCommand.CanExecute(row));
+    });
+
+    [Fact]
+    public void Progress_CityTimerRefreshesQuestsAndAchievementDatesWhileOpen() => RunSta(() =>
+    {
+        var context = CreateContext();
+        using var city = context.City;
+        var quest = new Quest(50, "Прибуток", "Отримайте золото", GameEventType.GoldEarned, 1, 0, 0);
+        var achievement = new Achievement(50, "Перший прибуток", "Отримайте золото", GameEventType.GoldEarned, 1);
+        context.Session.Player.QuestLog.AddQuest(quest);
+        context.Session.Player.Achievements.Initialize([achievement]);
+        context.Session.City.BuildBuilding(FakeCatalog.Hut);
+        city.OpenProgressCommand.Execute(null);
+        Assert.Equal("Заблоковано", Assert.Single(city.Progress.Achievements).State);
+        Pump(TimeSpan.FromMilliseconds(1150));
+        Assert.Equal(GameState.City, context.Session.CurrentState);
+        Assert.Equal(1, city.Progress.Quests.Single(q => q.Quest == quest).Progress);
+        var row = Assert.Single(city.Progress.Achievements);
+        Assert.Equal("Здобуто", row.State);
+        Assert.Equal(achievement.UnlockedAt!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm"), row.Date);
+        city.TogglePauseCommand.Execute(null);
+        Assert.False(city.Progress.ClaimRewardCommand.CanExecute(city.Progress.Quests.Single(q => q.Quest == quest)));
+    });
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -364,9 +467,39 @@ public sealed class LobbyTests
             }
             using var mapVm = new CityViewModel(context.Navigation, context.Saves, new FakeCatalog());
             var city = new CityView { DataContext = mapVm };
+            Assert.Same(app.FindResource("InventoryWeaponIcon"),
+                Assert.IsType<System.Windows.Controls.Image>(city.FindName("BattleDockIcon")).Source);
+            Assert.Same(app.FindResource("ProgressBookIcon"),
+                Assert.IsType<System.Windows.Controls.Image>(city.FindName("ProgressDockIcon")).Source);
             city.Measure(new Size(1180, 720));
             city.Arrange(new Rect(0, 0, 1180, 720));
             city.UpdateLayout();
+            mapVm.OpenProgressCommand.Execute(null);
+            city.UpdateLayout();
+            var progressPanel = Assert.IsType<System.Windows.Controls.Border>(city.FindName("ProgressPanel"));
+            Assert.Equal(Visibility.Visible, progressPanel.Visibility);
+            var progressContent = Assert.IsType<System.Windows.Controls.ContentControl>(
+                Assert.IsType<System.Windows.Controls.DockPanel>(progressPanel.Child).Children[1]);
+            Assert.Same(mapVm.Progress, progressContent.Content);
+            var template = Assert.IsType<DataTemplate>(app.FindResource(new DataTemplateKey(typeof(ProgressViewModel))));
+            var progressRoot = Assert.IsType<System.Windows.Controls.DockPanel>(template.LoadContent());
+            progressRoot.DataContext = mapVm.Progress;
+            var tabs = Assert.IsType<System.Windows.Controls.TabControl>(progressRoot.Children[1]);
+            for (var tab = 0; tab < 3; tab++)
+            {
+                tabs.SelectedIndex = tab;
+                progressRoot.Measure(new Size(900, 500));
+                progressRoot.Arrange(new Rect(0, 0, 900, 500));
+                progressRoot.UpdateLayout();
+                Assert.NotNull(tabs.SelectedContent);
+                var selectedTab = Assert.IsType<System.Windows.Controls.TabItem>(tabs.SelectedItem);
+                Assert.Same(app.FindResource("ProgressTab"), selectedTab.Style);
+                var frame = Assert.IsType<System.Windows.Controls.Border>(selectedTab.Template.FindName("Frame", selectedTab));
+                Assert.Equal("#FFF1DB94", frame.BorderBrush.ToString());
+            }
+            mapVm.CloseProgressCommand.Execute(null);
+            city.UpdateLayout();
+            Assert.Equal(Visibility.Collapsed, progressPanel.Visibility);
             var details = Assert.IsType<System.Windows.Controls.Border>(city.FindName("BuildingDetails"));
             Assert.Equal(Visibility.Collapsed, details.Visibility);
             var map = Assert.IsType<System.Windows.Controls.ScrollViewer>(city.FindName("CityMap"));

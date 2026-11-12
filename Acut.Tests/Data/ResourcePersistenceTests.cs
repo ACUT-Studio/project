@@ -18,6 +18,7 @@ public sealed class ResourcePersistenceTests
         Assert.True(sawmill.InvestedResources.IsEmpty);
         var mineType = db.Catalog.GetBuildingTypes().Single(t => t.Id == 4);
         Assert.Equal(mineType.BuildResources, session.Player.Resources);
+        Assert.True(session.Player.SkillTree.Unlock(session.Player.SkillTree.Skills.Single(s => s.Id == 1)));
         session.City.BuildBuilding(mineType);
         Assert.True(session.Player.Resources.IsEmpty);
         session.Tick(TimeSpan.FromSeconds(1));
@@ -44,7 +45,12 @@ public sealed class ResourcePersistenceTests
         }
         Assert.Equal("Wood", types[3].Resource);
         Assert.Equal("Stone", types[4].Resource);
-        Assert.All(types.Values, t => Assert.Null(t.RequiredSkillId));
+        Assert.Null(types[1].RequiredSkillId);
+        Assert.Null(types[3].RequiredSkillId);
+        Assert.Equal(1, types[2].RequiredSkillId);
+        Assert.Equal(1, types[4].RequiredSkillId);
+        Assert.Equal(2, types[5].RequiredSkillId);
+        Assert.Equal(3, types[6].RequiredSkillId);
         Assert.All(new[] { types[5], types[6] }, t => Assert.True(BuildingFactory.Create(t).OutputPerTick.IsEmpty));
     }
 
@@ -55,6 +61,9 @@ public sealed class ResourcePersistenceTests
         var session = GameSession.StartNewGame("Тест", null, db.Catalog);
         new SaveManager(db.Saves).Register(session);
         session.Player.AddResources(new(500, 1000, 1000));
+        session.Player.SkillTree.SkillPoints = 5;
+        foreach (var skill in session.Player.SkillTree.Skills.OrderBy(s => s.Id))
+            Assert.True(session.Player.SkillTree.Unlock(skill));
         var types = db.Catalog.GetBuildingTypes().ToDictionary(t => t.Id);
         var house = session.City.BuildBuilding(types[2]);
         session.City.UpgradeBuilding(house);
