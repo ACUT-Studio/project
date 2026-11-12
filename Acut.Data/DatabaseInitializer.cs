@@ -10,7 +10,7 @@ namespace Acut.Data;
 public sealed class DatabaseInitializer
 {
     /// <summary>Поточна версія схеми. Нова версія N додає файл Sql/migration_00N.sql.</summary>
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     private readonly SqliteConnectionFactory _factory;
 

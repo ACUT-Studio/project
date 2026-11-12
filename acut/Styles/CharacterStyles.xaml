@@ -1,0 +1,86 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Один шаблон для створення персонажа, інвентаря та портрета в місті. -->
+    <DataTemplate x:Key="CharacterAppearanceTemplate">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="150" Height="280">
+                <Path x:Name="Hair" Fill="#151311" Data="M46,18 L56,6 96,2 110,18 112,54 102,66 48,62 40,40 Z" />
+                <Path x:Name="Braid" Fill="#151311" Visibility="Collapsed"
+                      Data="M46,48 L56,64 44,86 38,94 44,104 32,116 36,126 22,148 14,140 26,123 22,114 34,102 28,92 38,78 Z" />
+                <Path x:Name="Skin" Fill="#D7AB76"
+                      Data="M54,24 L98,24 98,64 86,76 64,76 54,62 Z M67,70 H86 V90 H67 Z M8,167 L22,171 20,193 9,197 2,186 Z M128,170 L143,166 150,186 140,198 128,190 Z" />
+                <Path x:Name="Shirt" Fill="#8C9A43" Data="M55,84 L98,84 110,176 46,176 Z" />
+                <Path x:Name="Coat" Fill="#252A53"
+                      Data="M50,82 L65,82 56,176 39,178 32,116 22,173 8,169 25,94 Z M91,82 L106,84 128,96 144,168 128,174 110,118 113,177 98,176 Z" />
+                <Path x:Name="Trousers" Fill="#3E426F" Data="M43,174 L110,174 116,248 87,248 77,203 68,248 38,248 Z" />
+                <Path x:Name="Boots" Fill="#9A7D32" Data="M38,244 L68,244 68,278 24,278 24,266 36,260 Z M86,244 L116,244 118,262 129,269 129,278 86,278 Z" />
+                <Path x:Name="MerchantSash" Fill="#D8B55E" Visibility="Collapsed" Data="M57,84 L69,84 104,170 92,176 Z M41,164 H111 V176 H41 Z" />
+                <Path x:Name="KnightPlate" Fill="#B1BEC6" Stroke="#52636F" StrokeThickness="2" Visibility="Collapsed"
+                      Data="M52,84 L100,84 108,142 96,172 55,172 44,142 Z M29,91 L49,82 53,108 26,112 Z M105,82 L126,93 129,112 102,108 Z" />
+                <Path Fill="#272C2B" Data="M60,40 H68 V45 H60 Z M84,40 H92 V45 H84 Z M70,61 H86 V64 H70 Z" />
+            </Canvas>
+        </Viewbox>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding HairStyle}" Value="Long">
+                <Setter TargetName="Hair" Property="Data" Value="M40,18 L54,4 98,0 114,20 124,142 95,133 91,65 55,65 48,137 29,141 Z" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding HairStyle}" Value="Braid">
+                <Setter TargetName="Hair" Property="Data" Value="M40,20 L54,5 94,2 110,18 110,55 101,65 96,24 55,24 52,67 39,57 Z" />
+                <Setter TargetName="Braid" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding SkinColor}" Value="Tan">
+                <Setter TargetName="Skin" Property="Fill" Value="#B7784E" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding SkinColor}" Value="Dark">
+                <Setter TargetName="Skin" Property="Fill" Value="#70462F" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Outfit}" Value="Merchant">
+                <Setter TargetName="Coat" Property="Fill" Value="#824638" />
+                <Setter TargetName="Shirt" Property="Fill" Value="#E2C389" />
+                <Setter TargetName="Trousers" Property="Fill" Value="#4B3531" />
+                <Setter TargetName="Boots" Property="Fill" Value="#4A3024" />
+                <Setter TargetName="MerchantSash" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Outfit}" Value="Knight">
+                <Setter TargetName="Coat" Property="Fill" Value="#536B82" />
+                <Setter TargetName="Shirt" Property="Fill" Value="#617482" />
+                <Setter TargetName="Trousers" Property="Fill" Value="#52636F" />
+                <Setter TargetName="Boots" Property="Fill" Value="#8D9CA5" />
+                <Setter TargetName="KnightPlate" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+    <Style x:Key="CharacterVisual" TargetType="ContentControl">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style x:Key="CharacterCreationCard" TargetType="Border" BasedOn="{StaticResource LobbyCard}">
+        <Setter Property="MaxWidth" Value="800" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="24" />
+        <Setter Property="Padding" Value="24" />
+    </Style>
+    <Style x:Key="AppearanceLabel" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style x:Key="AppearanceChoice" TargetType="ComboBox">
+        <Setter Property="DisplayMemberPath" Value="Label" />
+        <Setter Property="SelectedValuePath" Value="Value" />
+        <Setter Property="Margin" Value="0,4,0,12" />
+        <Setter Property="Padding" Value="8,5" />
+    </Style>
+    <Style x:Key="CharacterPreviewPanel" TargetType="Border">
+        <Setter Property="Background" Value="#6B3825" />
+        <Setter Property="BorderBrush" Value="#DEAD6E" />
+        <Setter Property="BorderThickness" Value="3" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="24,0,0,0" />
+    </Style>
+    <Style x:Key="CharacterPreviewHeading" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#FFF2CF" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+</ResourceDictionary>

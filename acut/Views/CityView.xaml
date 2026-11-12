@@ -18,9 +18,11 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel Width="92">
-                        <Ellipse Width="78" Height="78" Stroke="#151715" StrokeThickness="3">
-                            <Ellipse.Fill><ImageBrush ImageSource="{StaticResource PlayerPortrait}" /></Ellipse.Fill>
-                        </Ellipse>
+                        <Grid Width="78" Height="78">
+                            <Ellipse Fill="#62665B" Stroke="#151715" StrokeThickness="3" />
+                            <ContentControl x:Name="PlayerAppearance" Content="{Binding Appearance}" Margin="10,4"
+                                            ContentTemplate="{StaticResource CharacterAppearanceTemplate}" Style="{StaticResource CharacterVisual}" />
+                        </Grid>
                         <TextBlock Text="{Binding Level, StringFormat='LVL {0}'}" Foreground="#FFF6D9"
                                    FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4" />
                     </StackPanel>

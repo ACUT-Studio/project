@@ -1,9 +1,132 @@
 <UserControl x:Class="acut.Views.InventoryView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock Text="{Binding Title}" Style="{StaticResource Title}" HorizontalAlignment="Center" />
-        <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" Margin="0,0,0,16" />
-        <Button Content="Назад до міста" Command="{Binding BackCommand}" Style="{StaticResource MenuButton}" />
-    </StackPanel>
+    <UserControl.Resources>
+        <ResourceDictionary Source="/acut;component/Styles/InventoryStyles.xaml" />
+    </UserControl.Resources>
+    <Grid Background="{StaticResource InventoryBackground}">
+        <Grid Margin="24,16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,16">
+                <Button DockPanel.Dock="Left" Content="Назад до міста" Command="{Binding BackCommand}"
+                        Style="{StaticResource InventoryAction}" Margin="0,0,24,0" />
+                <TextBlock Text="Інвентар" Style="{StaticResource InventoryTitle}" />
+            </DockPanel>
+            <TextBlock x:Name="PauseNotice" Grid.Row="1" Text="{Binding PauseMessage}" Style="{StaticResource InventoryPauseNotice}" />
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.85*" />
+                    <ColumnDefinition Width="1.15*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource InventoryProfile}" Margin="0,0,20,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{Binding PlayerName}" Style="{StaticResource InventoryTitle}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding PlayerLevel, StringFormat='Рівень {0}'}" Style="{StaticResource InventoryCaption}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="БРОНЯ" Style="{StaticResource InventoryEquipmentLabel}" />
+                                <Button x:Name="ArmorSlot" Command="{Binding UnequipArmorCommand}" Style="{StaticResource InventoryEquipmentSlot}"
+                                        ToolTip="{Binding EquippedArmorName}" AutomationProperties.Name="Вдягнута броня · натисніть, щоб зняти">
+                                    <ContentControl Content="{Binding EquippedArmor}" />
+                                </Button>
+                                <TextBlock Text="МЕЧ" Style="{StaticResource InventoryEquipmentLabel}" Margin="0,18,0,4" />
+                                <Button x:Name="WeaponSlot" Command="{Binding UnequipWeaponCommand}" Style="{StaticResource InventoryEquipmentSlot}"
+                                        ToolTip="{Binding EquippedWeaponName}" AutomationProperties.Name="Вдягнутий меч · натисніть, щоб зняти">
+                                    <ContentControl Content="{Binding EquippedWeapon}" />
+                                </Button>
+                            </StackPanel>
+                            <ContentControl x:Name="PlayerAppearance" Grid.Column="1" Content="{Binding Appearance}"
+                                            ContentTemplate="{StaticResource CharacterAppearanceTemplate}" Margin="16" Style="{StaticResource CharacterVisual}" />
+                        </Grid>
+                        <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding PlayerHealth, StringFormat='Здоров’я: {0}'}" Style="{StaticResource InventoryValue}" />
+                            <TextBlock Text="{Binding PlayerAttack, StringFormat='Атака: {0}'}" Style="{StaticResource InventoryValue}" />
+                            <TextBlock Text="{Binding PlayerDefense, StringFormat='Захист: {0}'}" Style="{StaticResource InventoryValue}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border x:Name="OwnedItemsPanel" Style="{StaticResource InventoryPanel}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource InventoryCaption}" Margin="0,0,0,8">
+                                <Run Text="Комірки: " /><Run Text="{Binding UsedSlots, Mode=OneWay}" />
+                                <Run Text=" / " /><Run Text="{Binding Capacity, Mode=OneWay}" />
+                            </TextBlock>
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
+                            <ItemsControl x:Name="InventoryList" ItemsSource="{Binding Slots}" Width="640">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><UniformGrid Columns="8" /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button x:Name="SlotButton" Style="{StaticResource InventorySlot}"
+                                                Command="{Binding DataContext.SelectItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" ToolTip="{Binding Hint}" AutomationProperties.Name="{Binding Hint}">
+                                            <Grid>
+                                                <ContentControl Content="{Binding Stack.Item}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="ItemQuantity" Text="{Binding Stack.Quantity}" Style="{StaticResource InventoryQuantity}" />
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            </Viewbox>
+                        </StackPanel>
+                    </Border>
+                    <Border x:Name="ItemDetailsPanel" Grid.Row="1" Style="{StaticResource InventoryPanel}" Margin="0,16,0,0">
+                        <Grid>
+                            <StackPanel Style="{StaticResource InventorySelectionHint}">
+                                <TextBlock Text="Виберіть предмет у сітці" Style="{StaticResource InventoryHeading}" />
+                                <TextBlock Text="Тут з’являться його характеристики. Меч і броню можна вдягнути." Style="{StaticResource InventoryCaption}" />
+                                <TextBlock Text="Інвентар порожній. Предмети можна придбати на ринку міста."
+                                           Style="{StaticResource EmptyInventoryMessage}" />
+                            </StackPanel>
+                            <DockPanel Visibility="{Binding HasSelection, Converter={StaticResource BooleanToVisibility}}">
+                                <Button x:Name="EquipButton" DockPanel.Dock="Bottom" Content="{Binding EquipButtonText}" Style="{StaticResource InventoryAction}"
+                                        Command="{Binding EquipCommand}" CommandParameter="{Binding SelectedItem.Item}" Margin="0,8,0,0"
+                                        Visibility="{Binding IsEquipmentSelected, Converter={StaticResource BooleanToVisibility}}" />
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <ContentControl Content="{Binding SelectedItem.Item}" DockPanel.Dock="Left" Margin="0,0,14,0" />
+                                        <TextBlock Text="{Binding SelectedItem.Item.Name}" Style="{StaticResource InventoryHeading}" />
+                                    </DockPanel>
+                                    <TextBlock Text="{Binding SelectedItem.Item.Description}" Style="{StaticResource InventoryCaption}" />
+                                    <TextBlock Text="{Binding SelectedItemStats}" Style="{StaticResource InventoryValue}" />
+                                    <WrapPanel>
+                                        <TextBlock x:Name="SelectedQuantity" Text="{Binding SelectedItem.Quantity, StringFormat='Кількість: {0}'}" Style="{StaticResource InventoryValue}" />
+                                        <TextBlock x:Name="ItemLevel" Text="{Binding SelectedItem.Item.Level, StringFormat='Рівень: {0}'}" Style="{StaticResource InventoryValue}" />
+                                        <TextBlock Text="{Binding SelectedItem.Item.Price, StringFormat='Ціна: {0} золота'}" Style="{StaticResource InventoryValue}" />
+                                    </WrapPanel>
+                                </StackPanel>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+            <TextBlock x:Name="OperationStatus" Grid.Row="3" Text="{Binding StatusMessage}" Style="{StaticResource InventoryStatus}"
+                       AutomationProperties.LiveSetting="Polite" />
+        </Grid>
+    </Grid>
 </UserControl>

@@ -68,6 +68,13 @@ classDiagram
         +SpendResources(ResourceAmounts cost) bool
         +AddResources(ResourceAmounts amount) void
         +AppearanceSettings Appearance
+        +Weapon EquippedWeapon
+        +Armor EquippedArmor
+        +int TotalAttackPower
+        +int TotalDefense
+        +EquipItem(Item item) bool
+        +UnequipWeapon() void
+        +UnequipArmor() void
         +GainExperience(int xp) void
         +LevelUp() void
         +AddGold(int amount) void
