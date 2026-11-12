@@ -4,5 +4,9 @@
         Title="AcutStudio" Height="720" Width="1180" MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen">
     <Window.InputBindings><KeyBinding Key="Escape" Command="{Binding TogglePauseCommand}" /></Window.InputBindings>
-    <ContentControl Content="{Binding Navigation.CurrentViewModel}" />
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Bottom" Text="{Binding AutoSave.StatusMessage}" Style="{StaticResource ValidationMessage}"
+                   Visibility="{Binding AutoSave.StatusMessage, Converter={StaticResource NullOrEmptyToVisibility}}" />
+        <ContentControl Content="{Binding Navigation.CurrentViewModel}" />
+    </DockPanel>
 </Window>

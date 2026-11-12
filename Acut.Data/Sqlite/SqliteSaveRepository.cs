@@ -193,11 +193,12 @@ public sealed class SqliteSaveRepository : ISaveRepository
         if (battle is null) return;
 
         SqlHelper.Execute(c, tx, """
-            INSERT INTO ActiveBattle (SaveId, EnemyId, EnemyHealth, TurnNumber, IsPlayerTurn)
-            VALUES ($save, $enemy, $health, $turn, $isPlayerTurn)
+            INSERT INTO ActiveBattle (SaveId, EnemyId, EnemyHealth, TurnNumber, IsPlayerTurn, PlayerDefending, EnemyDefending)
+            VALUES ($save, $enemy, $health, $turn, $isPlayerTurn, $playerDefending, $enemyDefending)
             """,
             ("$save", saveId), ("$enemy", battle.Enemy.DefinitionId), ("$health", battle.Enemy.Health),
-            ("$turn", battle.TurnNumber), ("$isPlayerTurn", battle.IsPlayerTurn ? 1 : 0));
+            ("$turn", battle.TurnNumber), ("$isPlayerTurn", battle.IsPlayerTurn ? 1 : 0),
+            ("$playerDefending", battle.PlayerDefending ? 1 : 0), ("$enemyDefending", battle.EnemyDefending ? 1 : 0));
     }
 
     private static void ReplaceStocks(
@@ -271,7 +272,12 @@ public sealed class SqliteSaveRepository : ISaveRepository
             : (battle is null ? GameState.City : GameState.Battle);
 
         var session = new GameSession(saveId, SaveMapper.ParseDate(createdAt), state, player, city, dispatcher);
-        if (battle is not null) session.RestoreBattle(battle);
+        if (battle is not null)
+        {
+            battle.Restore(battle.TurnNumber, battle.IsPlayerTurn, battle.PlayerDefending, battle.EnemyDefending,
+                state is GameState.Victory or GameState.Defeat);
+            session.RestoreBattle(battle);
+        }
         return session;
     }
 
@@ -373,11 +379,12 @@ public sealed class SqliteSaveRepository : ISaveRepository
     {
         Battle? battle = null;
         SqlHelper.Read(connection,
-            "SELECT EnemyId, EnemyHealth, TurnNumber, IsPlayerTurn FROM ActiveBattle WHERE SaveId = $save", r =>
+            "SELECT EnemyId, EnemyHealth, TurnNumber, IsPlayerTurn, PlayerDefending, EnemyDefending FROM ActiveBattle WHERE SaveId = $save", r =>
             {
                 if (!enemies.TryGetValue(r.GetInt("EnemyId"), out var definition)) return;
                 battle = new Battle(player, definition.CreateEnemy(r.GetInt("EnemyHealth")), dispatcher);
-                battle.Restore(r.GetInt("TurnNumber"), r.GetInt("IsPlayerTurn") == 1);
+                battle.Restore(r.GetInt("TurnNumber"), r.GetInt("IsPlayerTurn") == 1,
+                    r.GetInt("PlayerDefending") == 1, r.GetInt("EnemyDefending") == 1);
             }, ("$save", saveId));
         return battle;
     }

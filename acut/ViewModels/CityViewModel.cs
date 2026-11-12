@@ -6,6 +6,7 @@ using Acut.Core.Domain;
 using Acut.Core.Domain.Economy;
 using Acut.Core.Domain.Items;
 using Acut.Core.Domain.Characters;
+using Acut.Core.Domain.Combat;
 using Acut.Core.Services;
 using acut.Services;
 
@@ -52,6 +53,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     private bool _isConstructionOpen;
     private bool _isCraftingOpen;
     private bool _isMarketOpen;
+    private bool _isEnemySelectionOpen;
     private readonly IReadOnlyList<Recipe> _recipes;
     public const int MapColumns = 6;
     private const int MinimumMapRows = 3;
@@ -64,6 +66,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         _session = saves.Current ?? throw new InvalidOperationException("Гру не розпочато.");
         _buildingTypes = catalog.GetBuildingTypes();
         _recipes = catalog.GetRecipes();
+        Enemies = catalog.GetEnemies();
 
         BuildCommand = new RelayCommand(p => Build(p as BuildOption),
             p => !_disposed && !IsPaused && _session.City.CanBuildMore && p is BuildOption { IsAvailable: true });
@@ -93,7 +96,17 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         BuyStockCommand = new RelayCommand(p => TradeStock(p as StockRow, true), _ => IsPlaying && HasMarket);
         SellStockCommand = new RelayCommand(p => TradeStock(p as StockRow, false),
             p => IsPlaying && HasMarket && p is StockRow { Quantity: > 0 });
-        OpenBattleCommand = new RelayCommand(() => _navigation.NavigateTo<BattleViewModel>(), () => IsPlaying);
+        OpenBattleCommand = new RelayCommand(() =>
+        {
+            SelectBuilding(null);
+            IsConstructionOpen = false;
+            IsCraftingOpen = false;
+            IsMarketOpen = false;
+            IsEnemySelectionOpen = true;
+        }, () => IsPlaying && !_disposed);
+        CloseEnemySelectionCommand = new RelayCommand(() => IsEnemySelectionOpen = false);
+        StartBattleCommand = new RelayCommand(p => StartBattle(p as EnemyDefinition),
+            p => IsPlaying && !_disposed && p is EnemyDefinition enemy && Enemies.Contains(enemy));
         SaveCommand = new RelayCommand(Save);
         ExitToMenuCommand = new RelayCommand(ExitToMenu);
 
@@ -108,6 +121,8 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     public ObservableCollection<CityPlot> Plots { get; } = new();
     public ObservableCollection<CraftingOption> CraftingOptions { get; } = new();
     public ObservableCollection<StockRow> Stocks { get; } = new();
+    public IReadOnlyList<EnemyDefinition> Enemies { get; }
+    public bool IsEnemySelectionOpen { get => _isEnemySelectionOpen; private set => SetProperty(ref _isEnemySelectionOpen, value); }
     public IReadOnlyList<Item> MarketItems => _session.City.Shop?.Assortment ?? [];
     public bool HasWorkshop => _session.City.HasWorkshop;
     public bool HasMarket => _session.City.HasMarket;
@@ -162,6 +177,8 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     public RelayCommand BuyStockCommand { get; }
     public RelayCommand SellStockCommand { get; }
     public RelayCommand OpenBattleCommand { get; }
+    public RelayCommand CloseEnemySelectionCommand { get; }
+    public RelayCommand StartBattleCommand { get; }
     public RelayCommand BuildCommand { get; }
     public RelayCommand UpgradeCommand { get; }
     public RelayCommand RemoveBuildingCommand { get; }
@@ -193,6 +210,13 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(IsPaused));
         OnPropertyChanged(nameof(IsPlaying));
         CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void StartBattle(EnemyDefinition? enemy)
+    {
+        if (!StartBattleCommand.CanExecute(enemy)) return;
+        _session.StartBattle(enemy!.CreateEnemy());
+        _navigation.NavigateTo(GameState.Battle);
     }
 
     private void SelectBuilding(BuildingRow? row)

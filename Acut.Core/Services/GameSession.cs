@@ -3,6 +3,7 @@ using Acut.Core.Domain;
 using Acut.Core.Domain.Characters;
 using Acut.Core.Domain.Combat;
 using Acut.Core.Domain.Economy;
+using Acut.Core.Domain.Progress;
 
 namespace Acut.Core.Services;
 
@@ -43,6 +44,7 @@ public sealed class GameSession
     public City City { get; }
     public GameEventDispatcher Dispatcher { get; }
     public Battle? ActiveBattle { get; private set; }
+    public int? LastDefeatPenalty { get; private set; }
 
     /// <summary>Створює нову гру: гравець, каталог навичок/завдань/досягнень, місто, біржа. Завершується у стані City.</summary>
     /// <exception cref="GameRuleException">Некоректне ім'я персонажа.</exception>
@@ -107,10 +109,41 @@ public sealed class GameSession
     public Battle StartBattle(Enemy enemy)
     {
         ArgumentNullException.ThrowIfNull(enemy);
+        if (!Player.IsAlive || !enemy.IsAlive)
+            throw new GameRuleException("Не можна почати бій із загиблим учасником.");
         ChangeState(GameState.Battle);
+        LastDefeatPenalty = null;
         ActiveBattle = new Battle(Player, enemy, Dispatcher);
         ActiveBattle.Start();
         return ActiveBattle;
+    }
+
+    /// <summary>Нараховує результат рівно один раз. Повторний виклик лише повторює спробу збереження.</summary>
+    public void FinishBattle()
+    {
+        if (CurrentState is GameState.Victory or GameState.Defeat)
+        {
+            _saveManager?.AutoSave();
+            return;
+        }
+        if (CurrentState != GameState.Battle || ActiveBattle is null || ActiveBattle.CheckOutcome() == BattleResult.InProgress)
+            throw new GameRuleException("Бій ще не завершено.");
+        if (ActiveBattle.CheckOutcome() == BattleResult.Victory)
+        {
+            Player.AddGold(ActiveBattle.Enemy.RewardGold);
+            Player.GainExperience(ActiveBattle.Enemy.RewardExperience);
+            ChangeState(GameState.Victory);
+            Dispatcher.Publish(new GameEvent(GameEventType.BattleWon, 1));
+        }
+        else
+        {
+            LastDefeatPenalty = Player.Gold / 10;
+            Player.SpendGold(LastDefeatPenalty.Value);
+            Player.Heal(Player.MaxHealth);
+            ChangeState(GameState.Defeat);
+            Dispatcher.Publish(new GameEvent(GameEventType.BattleLost, 1));
+        }
+        _saveManager?.AutoSave();
     }
 
     /// <summary>Призначає бій, що тривав на момент збереження (завантаження).</summary>

@@ -57,6 +57,7 @@ public partial class App : Application
         // UI-сервіси
         services.AddSingleton<NavigationService>();
         services.AddSingleton<DialogService>();
+        services.AddSingleton<AutoSaveService>();
 
         // ViewModel: transient, щоб кожен перехід створював свіжий екран
         services.AddSingleton<MainViewModel>();
