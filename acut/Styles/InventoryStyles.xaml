@@ -107,15 +107,6 @@
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-    <DrawingImage x:Key="InventoryWeaponIcon">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <GeometryDrawing Brush="#C6D0D1" Geometry="M28,2 L38,2 38,12 18,36 10,28 Z" />
-                <GeometryDrawing Brush="#E2B451" Geometry="M5,24 L24,43 28,39 9,20 Z" />
-                <GeometryDrawing Brush="#392419" Geometry="M6,34 L14,42 7,49 0,42 Z" />
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
     <DrawingImage x:Key="InventoryArmorIcon">
         <DrawingImage.Drawing>
             <DrawingGroup>

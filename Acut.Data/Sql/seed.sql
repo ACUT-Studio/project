@@ -16,11 +16,11 @@ INSERT INTO BuildingType
     (BuildingTypeId, Kind, Name, BuildCost, UpgradeCost, MaxLevel, IncomePerTick,
      Capacity, Resource, ProductionRate, RequiredSkillId, BuildWoodCost, BuildStoneCost, UpgradeWoodCost, UpgradeStoneCost) VALUES
     (1, 'Residential', 'Хатина',          0,   0, 3, 2,  4, 'Gold',  NULL, NULL, 100,   0,  80,  0),
-    (2, 'Residential', 'Кам''яна хатина', 50,  40, 3, 5, 10, 'Gold',  NULL, NULL, 100,  80,  80, 60),
+    (2, 'Residential', 'Кам''яна хатина', 50,  40, 3, 5, 10, 'Gold',  NULL,    1, 100,  80,  80, 60),
     (3, 'Production',  'Лісопил',         0,   0, 3, 0, NULL, 'Wood',   4, NULL, 120,   0, 100,  0),
-    (4, 'Production',  'Шахта',           0,   0, 3, 0, NULL, 'Stone',  4, NULL, 150,   0, 120,  0),
-    (5, 'Workshop',    'Майстерня зілля', 100,  0, 1, 0, NULL, NULL, NULL, NULL, 120, 100,   0,  0),
-    (6, 'Market',      'Ринок',           100,  0, 1, 0, NULL, NULL, NULL, NULL, 150, 150,   0,  0);
+    (4, 'Production',  'Шахта',           0,   0, 3, 0, NULL, 'Stone',  4,    1, 150,   0, 120,  0),
+    (5, 'Workshop',    'Майстерня зілля', 100,  0, 1, 0, NULL, NULL, NULL,    2, 120, 100,   0,  0),
+    (6, 'Market',      'Ринок',           100,  0, 1, 0, NULL, NULL, NULL,    3, 150, 150,   0,  0);
 
 -- Безкоштовний лісопил і дерево на одну шахту; золото й камінь виробляються в місті.
 INSERT INTO EconomySettings (Id, StartingGold, StartingWood, StartingStone, StartingBuildingTypeId)

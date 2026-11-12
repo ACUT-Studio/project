@@ -54,6 +54,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     private bool _isCraftingOpen;
     private bool _isMarketOpen;
     private bool _isEnemySelectionOpen;
+    private bool _isProgressOpen;
     private readonly IReadOnlyList<Recipe> _recipes;
     public const int MapColumns = 6;
     private const int MinimumMapRows = 3;
@@ -67,6 +68,9 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         _buildingTypes = catalog.GetBuildingTypes();
         _recipes = catalog.GetRecipes();
         Enemies = catalog.GetEnemies();
+        Progress = new ProgressViewModel(_session, Refresh);
+        OpenProgressCommand = new RelayCommand(() => { Progress.Refresh(); IsProgressOpen = true; }, () => IsPlaying);
+        CloseProgressCommand = new RelayCommand(() => IsProgressOpen = false);
 
         BuildCommand = new RelayCommand(p => Build(p as BuildOption),
             p => !_disposed && !IsPaused && _session.City.CanBuildMore && p is BuildOption { IsAvailable: true });
@@ -122,6 +126,10 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     public ObservableCollection<CraftingOption> CraftingOptions { get; } = new();
     public ObservableCollection<StockRow> Stocks { get; } = new();
     public IReadOnlyList<EnemyDefinition> Enemies { get; }
+    public ProgressViewModel Progress { get; }
+    public bool IsProgressOpen { get => _isProgressOpen; private set => SetProperty(ref _isProgressOpen, value); }
+    public RelayCommand OpenProgressCommand { get; }
+    public RelayCommand CloseProgressCommand { get; }
     public bool IsEnemySelectionOpen { get => _isEnemySelectionOpen; private set => SetProperty(ref _isEnemySelectionOpen, value); }
     public IReadOnlyList<Item> MarketItems => _session.City.Shop?.Assortment ?? [];
     public bool HasWorkshop => _session.City.HasWorkshop;
@@ -360,6 +368,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
 
     private void Refresh()
     {
+        Progress.Refresh();
         OnPropertyChanged(nameof(Gold));
         OnPropertyChanged(nameof(Wood));
         OnPropertyChanged(nameof(Stone));

@@ -53,6 +53,9 @@ public sealed class BattleTests
             var session = GameSession.StartNewGame("Герой", null, catalog);
             saves.Register(session);
             session.Player.AddResources(new ResourceAmounts(1000, 1000, 1000));
+            session.Player.SkillTree.SkillPoints = 3;
+            Assert.True(session.Player.SkillTree.Unlock(session.Player.SkillTree.Skills.Single(s => s.Id == 1)));
+            Assert.True(session.Player.SkillTree.Unlock(session.Player.SkillTree.Skills.Single(s => s.Id == 3)));
             session.City.BuildBuilding(catalog.GetBuildingTypes().Single(t => t.Kind == BuildingKind.Market));
             NavigationService? navigation = null;
             navigation = new NavigationService(new TestServices(type => type == typeof(CityViewModel)

@@ -10,6 +10,7 @@
             <ResourceDictionary Source="Styles/GameStyles.xaml" />
             <ResourceDictionary Source="Styles/CharacterStyles.xaml" />
             <ResourceDictionary Source="Styles/BattleStyles.xaml" />
+            <ResourceDictionary Source="Styles/ProgressStyles.xaml" />
         </ResourceDictionary.MergedDictionaries>
         <conv:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
 
