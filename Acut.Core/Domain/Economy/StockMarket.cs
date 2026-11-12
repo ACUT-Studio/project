@@ -9,6 +9,7 @@ public sealed class StockMarket
         Stocks = stocks?.ToList() ?? new List<Stock>();
     }
 
+    internal Func<bool>? IsAccessible { get; set; }
     public List<Stock> Stocks { get; }
 
     /// <summary>
@@ -19,7 +20,7 @@ public sealed class StockMarket
     {
         ArgumentNullException.ThrowIfNull(stock);
         ArgumentNullException.ThrowIfNull(player);
-        if (qty <= 0) return false;
+        if (qty <= 0 || IsAccessible?.Invoke() == false) return false;
 
         var marketStock = Stocks.FirstOrDefault(s => s.Id == stock.Id) ?? stock;
         var totalCost = (int)Math.Round(marketStock.Price * qty, MidpointRounding.AwayFromZero);
@@ -44,7 +45,7 @@ public sealed class StockMarket
     {
         ArgumentNullException.ThrowIfNull(stock);
         ArgumentNullException.ThrowIfNull(player);
-        if (qty <= 0) return false;
+        if (qty <= 0 || IsAccessible?.Invoke() == false) return false;
 
         var marketStock = Stocks.FirstOrDefault(s => s.Id == stock.Id) ?? stock;
         player.StockHoldings.TryGetValue(marketStock.Id, out var currentQty);

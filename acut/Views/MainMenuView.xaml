@@ -1,10 +1,18 @@
 <UserControl x:Class="acut.Views.MainMenuView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock Text="AcutStudio" Style="{StaticResource Title}" FontSize="40" HorizontalAlignment="Center" />
-        <Button Content="Нова гра" Command="{Binding NewGameCommand}" Style="{StaticResource MenuButton}" />
-        <Button Content="Продовжити" Command="{Binding ContinueCommand}" Style="{StaticResource MenuButton}" />
-        <Button Content="Вихід" Command="{Binding ExitCommand}" Style="{StaticResource MenuButton}" />
-    </StackPanel>
+    <Grid Background="{StaticResource LobbyBackground}">
+        <Viewbox Stretch="Uniform">
+            <Grid Width="1920" Height="1080">
+                <TextBlock Text="ACUT" Style="{StaticResource MainMenuLogo}"
+                           HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,62,0,0" />
+                <StackPanel Width="280" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,390,0,0">
+                    <Button Content="ПРОДОВЖИТИ" Command="{Binding ContinueCommand}" Style="{StaticResource MainMenuAction}" />
+                    <Button Content="НОВА ГРА" Command="{Binding NewGameCommand}" Style="{StaticResource MainMenuAction}" />
+                    <Button Content="НАЛАШТУВАННЯ" Command="{Binding SettingsCommand}" Style="{StaticResource MainMenuAction}" />
+                    <Button Content="ВИХІД" Command="{Binding ExitCommand}" Style="{StaticResource MainMenuAction}" />
+                </StackPanel>
+            </Grid>
+        </Viewbox>
+    </Grid>
 </UserControl>

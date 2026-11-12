@@ -21,7 +21,9 @@ internal static class CatalogMapper
         r.GetNullableInt("Capacity") ?? 0,
         r.GetNullableStr("Resource"),
         r.GetNullableInt("ProductionRate") ?? 0,
-        r.GetNullableInt("RequiredSkillId"));
+        r.GetNullableInt("RequiredSkillId"),
+        r.GetInt("BuildWoodCost"), r.GetInt("BuildStoneCost"),
+        r.GetInt("UpgradeWoodCost"), r.GetInt("UpgradeStoneCost"));
 
     /// <summary>Підклас предмета визначається полем Kind.</summary>
     public static Item ReadItem(SqliteDataReader r)

@@ -17,6 +17,14 @@ public sealed class SqliteCatalogRepository : ICatalogRepository
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
 
+    public NewGameEconomy GetNewGameEconomy()
+    {
+        using var connection = _factory.CreateConnection();
+        return SqlHelper.Query(connection, "SELECT * FROM EconomySettings WHERE Id = 1", r =>
+            new NewGameEconomy(new ResourceAmounts(r.GetInt("StartingGold"), r.GetInt("StartingWood"), r.GetInt("StartingStone")),
+                r.GetNullableInt("StartingBuildingTypeId"))).Single();
+    }
+
     public IReadOnlyList<BuildingType> GetBuildingTypes()
     {
         using var connection = _factory.CreateConnection();

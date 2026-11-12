@@ -4,6 +4,6 @@
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <TextBlock Text="{Binding Title}" Style="{StaticResource Title}" HorizontalAlignment="Center" />
         <TextBlock Text="{Binding Description}" HorizontalAlignment="Center" Margin="0,0,0,16" />
-        <Button Content="Назад до міста" Command="{Binding BackCommand}" Style="{StaticResource MenuButton}" />
+        <Button Content="Назад до меню" Command="{Binding BackCommand}" Style="{StaticResource MenuButton}" />
     </StackPanel>
 </UserControl>

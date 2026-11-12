@@ -113,7 +113,7 @@ sequenceDiagram
     Гравець->>UI: Обирає тип будівлі у меню будівництва
     UI->>City: BuildBuilding(type)
     activate City
-    City->>P: SpendGold(BuildCost)
+    City->>P: SpendResources(type.BuildResources)
     activate P
     alt Достатньо валюти і будівля Available
         P-->>City: true

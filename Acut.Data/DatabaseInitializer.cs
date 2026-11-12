@@ -10,7 +10,7 @@ namespace Acut.Data;
 public sealed class DatabaseInitializer
 {
     /// <summary>Поточна версія схеми. Нова версія N додає файл Sql/migration_00N.sql.</summary>
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     private readonly SqliteConnectionFactory _factory;
 
@@ -33,15 +33,16 @@ public sealed class DatabaseInitializer
         // Усе або нічого: якщо скрипт впаде, транзакція відкотиться разом із версією схеми.
         using var transaction = connection.BeginTransaction();
 
-        if (version == 0)
+        var isNewDatabase = version == 0;
+        if (isNewDatabase)
         {
             Execute(connection, transaction, ReadResource("schema.sql"));
-            Execute(connection, transaction, ReadResource("seed.sql"));
             version = 1;
         }
         for (var next = version + 1; next <= CurrentSchemaVersion; next++)
             Execute(connection, transaction, ReadResource($"migration_{next:D3}.sql"));
 
+        if (isNewDatabase) Execute(connection, transaction, ReadResource("seed.sql"));
         SetUserVersion(connection, transaction, CurrentSchemaVersion);
         transaction.Commit();
     }

@@ -62,6 +62,11 @@ classDiagram
         +int Level
         +int Experience
         +int Gold
+        +int Wood
+        +int Stone
+        +ResourceAmounts Resources
+        +SpendResources(ResourceAmounts cost) bool
+        +AddResources(ResourceAmounts amount) void
         +AppearanceSettings Appearance
         +GainExperience(int xp) void
         +LevelUp() void
@@ -224,7 +229,13 @@ classDiagram
         +string Name
         +int CityLevel
         +int Population
+        +bool HasWorkshop
+        +bool HasMarket
+        +Craft(Recipe recipe) Item
+        +CollectAllResources() ResourceAmounts
+        +bool CanBuildMore
         +BuildBuilding(BuildingType type) Building
+        +RemoveBuilding(Building building) ResourceAmounts
         +GetBuildings() List~Building~
         +CollectAllIncome() int
         +Tick() void
@@ -237,14 +248,37 @@ classDiagram
         +int Level
         +int MaxLevel
         +int BuildCost
+        +ResourceAmounts BuildResources
+        +ResourceAmounts UpgradeResources
+        +ResourceAmounts InvestedResources
+        +ResourceAmounts DemolitionResources
+        +ResourceAmounts OutputPerTick
+        +int DemolitionRefund
         +int UpgradeCost
         +int IncomePerTick
         +BuildingStatus Status
-        +Build() void
+        +Build(bool isFree) void
         +Upgrade() bool
         +CollectIncome() int
     }
 
+    class ResourceAmounts {
+        +int Gold
+        +int Wood
+        +int Stone
+        +Add(ResourceAmounts other) ResourceAmounts
+        +Half() ResourceAmounts
+    }
+    class ResourceType {
+        <<enumeration>>
+        Gold
+        Wood
+        Stone
+    }
+    class NewGameEconomy {
+        +ResourceAmounts Resources
+        +int StartingBuildingTypeId
+    }
     class ResidentialBuilding {
         +int Capacity
     }
@@ -501,7 +535,7 @@ stateDiagram-v2
 | Головне меню | Створення персонажа | Кнопка «Нова гра» | Створюється нова `GameSession` |
 | Головне меню | Місто | Кнопка «Продовжити» | `SaveManager.LoadGame()` успішний |
 | Створення персонажа | Місто | Підтвердження | Ім'я та параметри валідні, збереження |
-| Місто (огляд) | Місто (будівництво) | Вибір будівлі | `Player.Gold ≥ BuildCost`, будівля `Available` |
+| Місто (огляд) | Місто (будівництво) | Вибір будівлі | `Player.CanAfford(BuildResources)`, будівля `Available` |
 | Місто | Бій | Вибір ворога | Створюється `Battle` |
 | Бій | Перемога | `Enemy.Health ≤ 0` | Нарахування нагород, оновлення статистики |
 | Бій | Поразка | `Player.Health ≤ 0` | Фіксація поразки |

@@ -58,14 +58,23 @@ public sealed class GameSession
 
         dispatcher ??= new GameEventDispatcher();
 
-        var player = new Player(name, appearance ?? AppearanceSettings.Default, gold: GameConfig.StartingGold);
+        var economy = catalog.GetNewGameEconomy();
+        var player = new Player(name, appearance ?? AppearanceSettings.Default, gold: economy.Resources.Gold,
+            wood: economy.Resources.Wood, stone: economy.Resources.Stone);
         player.SkillTree.Initialize(catalog.GetSkills());
         player.SkillTree.SkillPoints = GameConfig.StartingSkillPoints;
         player.Achievements.Initialize(catalog.GetAchievements());
         foreach (var quest in catalog.GetQuests())
             player.QuestLog.AddQuest(quest);
 
-        var city = new City($"Місто {name}", player, dispatcher, market: new StockMarket(catalog.GetStocks()));
+        var city = new City($"Місто {name}", player, dispatcher, market: new StockMarket(catalog.GetStocks()), shop: new Shop(catalog, dispatcher));
+        if (economy.StartingBuildingTypeId is int startingTypeId)
+        {
+            var type = catalog.GetBuildingTypes().Single(t => t.Id == startingTypeId);
+            var building = BuildingFactory.Create(type);
+            building.Build(isFree: true);
+            city.RestoreBuilding(building);
+        }
         var session = new GameSession(Guid.NewGuid(), DateTime.UtcNow, GameState.CharacterCreation, player, city, dispatcher);
         session.ChangeState(GameState.City);
         return session;

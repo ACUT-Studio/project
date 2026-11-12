@@ -18,6 +18,7 @@ public sealed class MainMenuViewModel : ViewModelBase
 
         NewGameCommand = new RelayCommand(() => _navigation.NavigateTo<CharacterCreationViewModel>());
         ContinueCommand = new RelayCommand(Continue, () => CanContinue);
+        SettingsCommand = new RelayCommand(() => _navigation.NavigateTo<SettingsViewModel>());
         ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
     }
 
@@ -25,6 +26,7 @@ public sealed class MainMenuViewModel : ViewModelBase
 
     public RelayCommand NewGameCommand { get; }
     public RelayCommand ContinueCommand { get; }
+    public RelayCommand SettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
 
     private void Continue()
@@ -40,6 +42,8 @@ public sealed class MainMenuViewModel : ViewModelBase
                 _dialogs.ShowError("Збереження не знайдено.");
                 return;
             }
+            if (session.CurrentState == GameState.Paused)
+                session.ChangeState(GameState.City);
             _navigation.NavigateTo(session.CurrentState);
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 using Acut.Core.Domain.Items;
+using Acut.Core.Domain.Economy;
 using Acut.Core.Domain.Progress;
 
 namespace Acut.Core.Domain.Characters;
@@ -9,7 +10,8 @@ public sealed class Player : Character
         string name, AppearanceSettings appearance,
         int level = 1, int experience = 0, int gold = 0,
         int health = GameConfig.PlayerBaseHealth, int maxHealth = GameConfig.PlayerBaseHealth,
-        int attackPower = GameConfig.PlayerBaseAttack, int defense = GameConfig.PlayerBaseDefense)
+        int attackPower = GameConfig.PlayerBaseAttack, int defense = GameConfig.PlayerBaseDefense,
+        int wood = 0, int stone = 0)
         : base(name, maxHealth, health, attackPower, defense)
     {
         ArgumentNullException.ThrowIfNull(appearance);
@@ -17,6 +19,10 @@ public sealed class Player : Character
         ArgumentOutOfRangeException.ThrowIfNegative(experience);
         ArgumentOutOfRangeException.ThrowIfNegative(gold);
 
+        ArgumentOutOfRangeException.ThrowIfNegative(wood);
+        ArgumentOutOfRangeException.ThrowIfNegative(stone);
+        Wood = wood;
+        Stone = stone;
         Appearance = appearance;
         Level = level;
         Experience = experience;
@@ -32,6 +38,32 @@ public sealed class Player : Character
     public int Level { get; private set; }
     public int Experience { get; private set; }
     public int Gold { get; private set; }
+    public int Wood { get; private set; }
+    public int Stone { get; private set; }
+    public ResourceAmounts Resources => new(Gold, Wood, Stone);
+
+    public bool CanAfford(ResourceAmounts cost) =>
+        Gold >= cost.Gold && Wood >= cost.Wood && Stone >= cost.Stone;
+
+    /// <summary>Списує всі складові атомарно: за нестачі хоч одного ресурсу нічого не змінює.</summary>
+    public bool SpendResources(ResourceAmounts cost)
+    {
+        ArgumentNullException.ThrowIfNull(cost);
+        if (!CanAfford(cost)) return false;
+        Gold -= cost.Gold;
+        Wood -= cost.Wood;
+        Stone -= cost.Stone;
+        return true;
+    }
+
+    public void AddResources(ResourceAmounts amount)
+    {
+        ArgumentNullException.ThrowIfNull(amount);
+        var total = Resources.Add(amount);
+        Gold = total.Gold;
+        Wood = total.Wood;
+        Stone = total.Stone;
+    }
     public AppearanceSettings Appearance { get; }
 
     public Inventory Inventory { get; }

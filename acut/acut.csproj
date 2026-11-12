@@ -17,4 +17,11 @@
     <ProjectReference Include="..\Acut.Data\Acut.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Assets\Buildings\buildings-atlas.png" />
+    <Resource Include="Assets\Buildings\buildings-atlas.png" />
+    <None Remove="Assets\Buildings\sawmill.png" />
+    <Resource Include="Assets\Buildings\sawmill.png" />
+  </ItemGroup>
+
 </Project>

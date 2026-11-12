@@ -11,6 +11,7 @@ public sealed class WorkshopBuilding : Building
         Dispatcher = dispatcher;
     }
 
+    internal Func<bool>? IsAccessible { get; set; }
     public override BuildingKind Kind => BuildingKind.Workshop;
 
     /// <summary>Диспетчер подій для публікації PotionCrafted.</summary>
@@ -26,7 +27,7 @@ public sealed class WorkshopBuilding : Building
         ArgumentNullException.ThrowIfNull(recipe);
         ArgumentNullException.ThrowIfNull(inventory);
 
-        if (!recipe.CanCraft(inventory))
+        if (Status is not (BuildingStatus.Active or BuildingStatus.MaxLevel) || IsAccessible?.Invoke() == false || !recipe.CanCraft(inventory))
             return null;
 
         var willFreeSlot = recipe.Ingredients.Any(i => inventory.GetQuantity(i.Key) == i.Value);

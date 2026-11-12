@@ -11,6 +11,7 @@ namespace Acut.Core.Abstractions;
 /// </summary>
 public interface ICatalogRepository
 {
+    NewGameEconomy GetNewGameEconomy();
     IReadOnlyList<BuildingType> GetBuildingTypes();
     IReadOnlyList<Item> GetItems();
     IReadOnlyList<Recipe> GetRecipes();
