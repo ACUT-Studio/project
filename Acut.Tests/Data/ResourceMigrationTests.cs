@@ -42,7 +42,7 @@ public sealed class ResourceMigrationTests
 
         var initializer = new DatabaseInitializer(factory);
         initializer.Initialize();
-        Assert.Equal(2L, Scalar(anchor, "PRAGMA user_version"));
+        Assert.Equal((long)DatabaseInitializer.CurrentSchemaVersion, Scalar(anchor, "PRAGMA user_version"));
         Assert.Equal(1025L, Scalar(anchor, "SELECT Gold FROM Player"));
         Assert.Equal(150L, Scalar(anchor, "SELECT Wood FROM Player"));
         Assert.Equal(0L, Scalar(anchor, "SELECT Stone FROM Player"));

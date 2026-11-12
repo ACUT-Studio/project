@@ -124,10 +124,12 @@ public sealed class SqliteSaveRepository : ISaveRepository
         foreach (var stack in player.Inventory.GetItems())
         {
             SqlHelper.Execute(c, tx, """
-                INSERT INTO InventoryItem (PlayerId, ItemId, Quantity, ItemLevel)
-                VALUES ($p, $item, $qty, $level)
+                INSERT INTO InventoryItem (PlayerId, ItemId, Quantity, ItemLevel, EquipmentSlot)
+                VALUES ($p, $item, $qty, $level, $slot)
                 """,
-                ("$p", playerId), ("$item", stack.Item.Id), ("$qty", stack.Quantity), ("$level", stack.Item.Level));
+                ("$p", playerId), ("$item", stack.Item.Id), ("$qty", stack.Quantity), ("$level", stack.Item.Level),
+                ("$slot", player.EquippedWeapon?.Id == stack.Item.Id ? "Weapon"
+                    : player.EquippedArmor?.Id == stack.Item.Id ? "Armor" : null));
         }
     }
 
@@ -284,11 +286,19 @@ public sealed class SqliteSaveRepository : ISaveRepository
         player.SkillTree.RestoreUnlocked(
             SqlHelper.Query(connection, "SELECT SkillId FROM PlayerSkill WHERE PlayerId = $p", r => r.GetInt("SkillId"), p));
 
-        SqlHelper.Read(connection, "SELECT ItemId, Quantity, ItemLevel FROM InventoryItem WHERE PlayerId = $p", r =>
+        SqlHelper.Read(connection, "SELECT ItemId, Quantity, ItemLevel, EquipmentSlot FROM InventoryItem WHERE PlayerId = $p", r =>
         {
             if (!items.TryGetValue(r.GetInt("ItemId"), out var item)) return; // предмет прибрано з каталогу
             item.RestoreLevel(r.GetInt("ItemLevel"));
             player.Inventory.AddItem(item, r.GetInt("Quantity"));
+            if (!r.IsDBNull(r.GetOrdinal("EquipmentSlot")))
+            {
+                var slot = r.GetStr("EquipmentSlot");
+                if ((slot == "Weapon" && item is Weapon) || (slot == "Armor" && item is Armor))
+                    player.EquipItem(item);
+                else
+                    throw new InvalidDataException("Збереження пошкоджене: тип спорядження не відповідає слоту.");
+            }
         }, p);
 
         var restoredQuests = new List<Quest>();

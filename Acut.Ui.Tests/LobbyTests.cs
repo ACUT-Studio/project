@@ -449,6 +449,77 @@ public sealed class LobbyTests
             economyView.UpdateLayout();
             Assert.Equal(Visibility.Visible, ((System.Windows.Controls.Border)economyView.FindName("CraftingPanel")).Visibility);
             SavePreview(economyView, "resource-crafting.png");
+            var sword = FakeCatalog.IronSword.Clone();
+            var armor = FakeCatalog.LeatherArmor.Clone();
+            economyContext.Session.Player.Inventory.AddItem(sword);
+            economyContext.Session.Player.Inventory.AddItem(armor);
+            var inventoryVm = new InventoryViewModel(economyContext.Navigation, economyContext.Saves);
+            var inventoryView = new InventoryView { DataContext = inventoryVm };
+            inventoryView.Measure(new Size(1180, 720));
+            inventoryView.Arrange(new Rect(0, 0, 1180, 720));
+            inventoryView.UpdateLayout();
+            Assert.Null(inventoryView.FindName("ShopPanel"));
+            Assert.Null(inventoryView.FindName("ShopList"));
+            Assert.Null(inventoryView.FindName("GoldBalance"));
+            Assert.Null(inventoryView.FindName("UpgradeButton"));
+            Assert.Null(inventoryView.FindName("UpgradePrice"));
+            Assert.False(inventoryVm.HasSelection);
+            Assert.Equal(GameState.Paused, economyContext.Session.CurrentState);
+            var pauseNotice = (System.Windows.Controls.TextBlock)inventoryView.FindName("PauseNotice");
+            Assert.Contains("Місто на паузі", pauseNotice.Text);
+            var inventoryList = Assert.IsType<System.Windows.Controls.ItemsControl>(inventoryView.FindName("InventoryList"));
+            Assert.Equal(inventoryVm.Capacity, inventoryList.Items.Count);
+            var firstSlot = (FrameworkElement)inventoryList.ItemContainerGenerator.ContainerFromIndex(0);
+            var secondSlot = (FrameworkElement)inventoryList.ItemContainerGenerator.ContainerFromIndex(1);
+            var nextRow = (FrameworkElement)inventoryList.ItemContainerGenerator.ContainerFromIndex(8);
+            Assert.Equal(firstSlot.TranslatePoint(new Point(), inventoryView).Y, secondSlot.TranslatePoint(new Point(), inventoryView).Y);
+            Assert.True(nextRow.TranslatePoint(new Point(), inventoryView).Y > firstSlot.TranslatePoint(new Point(), inventoryView).Y);
+            var weaponIndex = inventoryVm.Slots.Single(s => s.Stack?.Item.Id == sword.Id).Index;
+            var weaponContainer = (FrameworkElement)inventoryList.ItemContainerGenerator.ContainerFromIndex(weaponIndex);
+            var selectButton = Assert.IsType<System.Windows.Controls.Button>(inventoryList.ItemTemplate.FindName("SlotButton", weaponContainer));
+            Assert.Same(inventoryVm.SelectItemCommand, selectButton.Command);
+            selectButton.Command.Execute(selectButton.CommandParameter);
+            inventoryView.UpdateLayout();
+            Assert.Same(sword, inventoryVm.SelectedItem!.Item);
+            var equipButton = (System.Windows.Controls.Button)inventoryView.FindName("EquipButton");
+            Assert.Same(inventoryVm.EquipCommand, equipButton.Command);
+            Assert.Same(sword, equipButton.CommandParameter);
+            equipButton.Command.Execute(equipButton.CommandParameter);
+            inventoryVm.EquipCommand.Execute(armor);
+            Pump(TimeSpan.FromMilliseconds(10));
+            inventoryView.UpdateLayout();
+            var weaponSlot = (System.Windows.Controls.Button)inventoryView.FindName("WeaponSlot");
+            var armorSlot = (System.Windows.Controls.Button)inventoryView.FindName("ArmorSlot");
+            Assert.Same(sword, ((System.Windows.Controls.ContentControl)weaponSlot.Content).Content);
+            Assert.Same(armor, ((System.Windows.Controls.ContentControl)armorSlot.Content).Content);
+            Assert.Same(inventoryVm.UnequipWeaponCommand, weaponSlot.Command);
+            Assert.Same(inventoryVm.UnequipArmorCommand, armorSlot.Command);
+            Assert.False(equipButton.IsEnabled);
+            Assert.Equal("Вдягнуто", equipButton.Content);
+            Assert.True(weaponSlot.TranslatePoint(new Point(), inventoryView).X < 200);
+            Assert.True(armorSlot.TranslatePoint(new Point(), inventoryView).X < 200);
+            SavePreview(inventoryView, "inventory.png");
+            inventoryView.Measure(new Size(900, 600));
+            inventoryView.Arrange(new Rect(0, 0, 900, 600));
+            inventoryView.UpdateLayout();
+            var ownedPanel = (FrameworkElement)inventoryView.FindName("OwnedItemsPanel");
+            var detailsPanel = (FrameworkElement)inventoryView.FindName("ItemDetailsPanel");
+            var ownedBounds = ownedPanel.TransformToAncestor(inventoryView).TransformBounds(new Rect(ownedPanel.RenderSize));
+            Assert.True(ownedBounds.Bottom <= detailsPanel.TranslatePoint(new Point(), inventoryView).Y);
+            Assert.True(ownedBounds.Right <= 900);
+            var detailsBounds = detailsPanel.TransformToAncestor(inventoryView).TransformBounds(new Rect(detailsPanel.RenderSize));
+            var equipBounds = equipButton.TransformToAncestor(inventoryView).TransformBounds(new Rect(equipButton.RenderSize));
+            Assert.True(equipBounds.Height > 0);
+            Assert.True(equipBounds.Top >= detailsBounds.Top && equipBounds.Bottom <= detailsBounds.Bottom);
+            SavePreview(inventoryView, "inventory-compact.png");
+            weaponSlot.Command.Execute(null);
+            inventoryView.UpdateLayout();
+            Assert.Null(((System.Windows.Controls.ContentControl)weaponSlot.Content).Content);
+            Assert.Null(inventoryVm.EquippedWeapon);
+            var inventoryAppearance = (System.Windows.Controls.ContentControl)inventoryView.FindName("PlayerAppearance");
+            var cityAppearance = (System.Windows.Controls.ContentControl)city.FindName("PlayerAppearance");
+            Assert.Equal(inventoryVm.Appearance, inventoryAppearance.Content);
+            Assert.Equal(mapVm.Appearance, cityAppearance.Content);
             var menuVm = new MainMenuViewModel(context.Navigation, context.Saves, new DialogService());
             var menu = new MainMenuView { DataContext = menuVm };
             menu.Measure(new Size(1180, 720));
@@ -462,6 +533,56 @@ public sealed class LobbyTests
             };
             character.Measure(new Size(1180, 720));
             character.Arrange(new Rect(0, 0, 1180, 720));
+            character.UpdateLayout();
+            var creation = (CharacterCreationViewModel)character.DataContext;
+            var hairChoice = (System.Windows.Controls.ComboBox)character.FindName("HairChoice");
+            var skinChoice = (System.Windows.Controls.ComboBox)character.FindName("SkinChoice");
+            var outfitChoice = (System.Windows.Controls.ComboBox)character.FindName("OutfitChoice");
+            Assert.Equal("Short", hairChoice.SelectedValue);
+            Assert.Equal("Коротка", ((AppearanceOption)hairChoice.SelectedItem).Label);
+            Assert.Equal("Label", hairChoice.DisplayMemberPath);
+            hairChoice.SelectedValue = "Braid";
+            skinChoice.SelectedValue = "Dark";
+            outfitChoice.SelectedValue = "Knight";
+            character.UpdateLayout();
+            Assert.Equal("Коса", ((AppearanceOption)hairChoice.SelectedItem).Label);
+            Assert.Equal("Темний", ((AppearanceOption)skinChoice.SelectedItem).Label);
+            Assert.Equal("Лицар", ((AppearanceOption)outfitChoice.SelectedItem).Label);
+            var preview = (System.Windows.Controls.ContentControl)character.FindName("AppearancePreview");
+            Assert.Equal(new Acut.Core.Domain.Characters.AppearanceSettings("Braid", "Dark", "Knight"), preview.Content);
+            Assert.Equal(creation.PreviewAppearance, preview.Content);
+            Assert.Same(preview.ContentTemplate, inventoryAppearance.ContentTemplate);
+            Assert.Same(preview.ContentTemplate, cityAppearance.ContentTemplate);
+            SavePreview(character, "character-creation.png");
+            var signatures = new HashSet<string>();
+            foreach (var hair in creation.HairStyles)
+            foreach (var skin in creation.SkinColors)
+            foreach (var outfit in creation.Outfits)
+            {
+                var appearance = new Acut.Core.Domain.Characters.AppearanceSettings(hair.Value, skin.Value, outfit.Value);
+                var visual = new System.Windows.Controls.ContentControl
+                {
+                    Content = appearance, ContentTemplate = preview.ContentTemplate,
+                    Style = (Style)app.FindResource("CharacterVisual")
+                };
+                visual.Measure(new Size(150, 280));
+                visual.Arrange(new Rect(0, 0, 150, 280));
+                visual.UpdateLayout();
+                var bitmap = new RenderTargetBitmap(150, 280, 96, 96, PixelFormats.Pbgra32);
+                bitmap.Render(visual);
+                var pixels = new byte[150 * 280 * 4];
+                bitmap.CopyPixels(pixels, 150 * 4, 0);
+                Assert.True(signatures.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels))),
+                    $"Зовнішність {hair}/{skin}/{outfit} повинна мати окремий вигляд.");
+            }
+            Assert.Equal(27, signatures.Count);
+            character.Measure(new Size(900, 600));
+            character.Arrange(new Rect(0, 0, 900, 600));
+            character.UpdateLayout();
+            var previewBounds = preview.TransformToAncestor(character).TransformBounds(new Rect(preview.RenderSize));
+            Assert.True(previewBounds.Width > 0 && previewBounds.Height > 0);
+            Assert.True(previewBounds.Right <= 900 && previewBounds.Bottom <= 600);
+            SavePreview(character, "character-creation-compact.png");
         }
         finally { app.Shutdown(); }
     });

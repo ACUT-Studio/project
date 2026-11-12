@@ -6,6 +6,9 @@ namespace Acut.Core.Domain.Characters;
 
 public sealed class Player : Character
 {
+    private int? _equippedWeaponId;
+    private int? _equippedArmorId;
+
     public Player(
         string name, AppearanceSettings appearance,
         int level = 1, int experience = 0, int gold = 0,
@@ -67,6 +70,27 @@ public sealed class Player : Character
     public AppearanceSettings Appearance { get; }
 
     public Inventory Inventory { get; }
+    public Weapon? EquippedWeapon => Inventory.GetItems().FirstOrDefault(s => s.Item.Id == _equippedWeaponId)?.Item as Weapon;
+    public Armor? EquippedArmor => Inventory.GetItems().FirstOrDefault(s => s.Item.Id == _equippedArmorId)?.Item as Armor;
+    public int TotalAttackPower => AttackPower + (EquippedWeapon?.BonusAttack ?? 0);
+    public int TotalDefense => Defense + (EquippedArmor?.BonusDefense ?? 0);
+
+    /// <summary>Вдягає власний предмет інвентаря, замінюючи спорядження того самого типу.</summary>
+    public bool EquipItem(Item item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        var owned = Inventory.GetItems().FirstOrDefault(s => s.Item.Id == item.Id)?.Item;
+        switch (owned)
+        {
+            case Weapon weapon: _equippedWeaponId = weapon.Id; return true;
+            case Armor armor: _equippedArmorId = armor.Id; return true;
+            default: return false;
+        }
+    }
+
+    public void UnequipWeapon() => _equippedWeaponId = null;
+    public void UnequipArmor() => _equippedArmorId = null;
+
     public SkillTree SkillTree { get; }
     public QuestLog QuestLog { get; }
     public AchievementTracker Achievements { get; }

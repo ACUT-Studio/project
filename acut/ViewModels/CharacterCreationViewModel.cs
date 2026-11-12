@@ -6,6 +6,8 @@ using acut.Services;
 
 namespace acut.ViewModels;
 
+public sealed record AppearanceOption(string Value, string Label);
+
 public sealed class CharacterCreationViewModel : ViewModelBase
 {
     private readonly NavigationService _navigation;
@@ -30,9 +32,12 @@ public sealed class CharacterCreationViewModel : ViewModelBase
         CancelCommand = new RelayCommand(() => _navigation.NavigateTo<MainMenuViewModel>());
     }
 
-    public string[] HairStyles { get; } = ["Short", "Long", "Braid"];
-    public string[] SkinColors { get; } = ["Light", "Tan", "Dark"];
-    public string[] Outfits { get; } = ["Traveler", "Merchant", "Knight"];
+    public AppearanceOption[] HairStyles { get; } =
+        [new("Short", "Коротка"), new("Long", "Довга"), new("Braid", "Коса")];
+    public AppearanceOption[] SkinColors { get; } =
+        [new("Light", "Світлий"), new("Tan", "Засмаглий"), new("Dark", "Темний")];
+    public AppearanceOption[] Outfits { get; } =
+        [new("Traveler", "Мандрівник"), new("Merchant", "Торговець"), new("Knight", "Лицар")];
 
     public string Name
     {
@@ -45,9 +50,22 @@ public sealed class CharacterCreationViewModel : ViewModelBase
         }
     }
     public string? NameError => GameSession.GetPlayerNameError(Name);
-    public string HairStyle { get => _hairStyle; set => SetProperty(ref _hairStyle, value); }
-    public string SkinColor { get => _skinColor; set => SetProperty(ref _skinColor, value); }
-    public string Outfit { get => _outfit; set => SetProperty(ref _outfit, value); }
+    public AppearanceSettings PreviewAppearance => new(HairStyle, SkinColor, Outfit);
+    public string HairStyle
+    {
+        get => _hairStyle;
+        set { if (SetProperty(ref _hairStyle, value)) OnPropertyChanged(nameof(PreviewAppearance)); }
+    }
+    public string SkinColor
+    {
+        get => _skinColor;
+        set { if (SetProperty(ref _skinColor, value)) OnPropertyChanged(nameof(PreviewAppearance)); }
+    }
+    public string Outfit
+    {
+        get => _outfit;
+        set { if (SetProperty(ref _outfit, value)) OnPropertyChanged(nameof(PreviewAppearance)); }
+    }
 
     public RelayCommand ConfirmCommand { get; }
     public RelayCommand CancelCommand { get; }
@@ -57,7 +75,7 @@ public sealed class CharacterCreationViewModel : ViewModelBase
         if (NameError is not null) return;
         try
         {
-            var session = GameSession.StartNewGame(Name, new AppearanceSettings(HairStyle, SkinColor, Outfit), _catalog);
+            var session = GameSession.StartNewGame(Name, PreviewAppearance, _catalog);
             _saves.Register(session);
             session.Save(); // перше збереження: «Створення персонажа підтверджено»
             _navigation.NavigateTo(session.CurrentState);

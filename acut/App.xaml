@@ -6,7 +6,10 @@
              xmlns:conv="clr-namespace:acut.Converters">
     <Application.Resources>
       <ResourceDictionary>
-        <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="Styles/GameStyles.xaml" /></ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="Styles/GameStyles.xaml" />
+            <ResourceDictionary Source="Styles/CharacterStyles.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <conv:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
 
         <!-- ViewModel → View -->

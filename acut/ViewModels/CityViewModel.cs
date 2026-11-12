@@ -5,6 +5,7 @@ using Acut.Core.Abstractions;
 using Acut.Core.Domain;
 using Acut.Core.Domain.Economy;
 using Acut.Core.Domain.Items;
+using Acut.Core.Domain.Characters;
 using Acut.Core.Services;
 using acut.Services;
 
@@ -130,6 +131,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         private set => SetProperty(ref _isConstructionOpen, value);
     }
     public string PlayerName => _session.Player.Name;
+    public AppearanceSettings Appearance => _session.Player.Appearance;
     public string CityName => _session.City.Name;
     public int BuildingCount => Buildings.Count;
     public int BuildingLimit => GameConfig.MaxCityBuildings;
