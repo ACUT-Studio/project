@@ -15,6 +15,7 @@ public sealed class Shop
         Dispatcher = dispatcher;
     }
 
+    internal Func<bool>? IsAccessible { get; set; }
     public List<Item> Assortment { get; }
     public GameEventDispatcher? Dispatcher { get; set; }
 
@@ -27,6 +28,7 @@ public sealed class Shop
         ArgumentNullException.ThrowIfNull(item);
         ArgumentNullException.ThrowIfNull(player);
 
+        if (IsAccessible?.Invoke() == false) return false;
         var shopItem = Assortment.FirstOrDefault(i => i.Id == item.Id) ?? item;
         if (!player.Inventory.CanAddItem(shopItem))
             return false;
@@ -57,6 +59,7 @@ public sealed class Shop
         ArgumentNullException.ThrowIfNull(item);
         ArgumentNullException.ThrowIfNull(player);
 
+        if (IsAccessible?.Invoke() == false) return false;
         var stack = player.Inventory.GetItems().FirstOrDefault(s => s.Item.Id == item.Id);
         if (stack is null)
             return false;

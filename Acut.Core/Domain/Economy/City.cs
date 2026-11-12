@@ -1,4 +1,5 @@
 using Acut.Core.Domain.Characters;
+using Acut.Core.Domain.Items;
 using Acut.Core.Domain.Progress;
 using Acut.Core.Services;
 
@@ -10,7 +11,7 @@ public sealed class City
     private readonly GameEventDispatcher _dispatcher;
     private readonly List<Building> _buildings = new();
 
-    public City(string name, Player owner, GameEventDispatcher dispatcher, int cityLevel = 1, StockMarket? market = null)
+    public City(string name, Player owner, GameEventDispatcher dispatcher, int cityLevel = 1, StockMarket? market = null, Shop? shop = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Назва міста не може бути порожньою.", nameof(name));
@@ -21,11 +22,37 @@ public sealed class City
         _owner = owner ?? throw new ArgumentNullException(nameof(owner));
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         Market = market ?? new StockMarket();
+        Market.IsAccessible = () => HasMarket;
+        Shop = shop;
+        if (Shop is not null) Shop.IsAccessible = () => HasMarket;
     }
 
     public string Name { get; }
     public int CityLevel { get; }
     public StockMarket Market { get; }
+    public Shop? Shop { get; }
+    public bool HasWorkshop => _buildings.Any(b => b.Kind == BuildingKind.Workshop && b.Status is BuildingStatus.Active or BuildingStatus.MaxLevel);
+    public bool HasMarket => _buildings.Any(b => b.Kind == BuildingKind.Market && b.Status is BuildingStatus.Active or BuildingStatus.MaxLevel);
+
+    public Item? Craft(Recipe recipe)
+    {
+        var workshop = _buildings.OfType<WorkshopBuilding>().FirstOrDefault()
+            ?? throw new GameRuleException("Для зіллєваріння побудуйте майстерню зілля.");
+        return workshop.Craft(recipe, _owner.Inventory);
+    }
+
+    public string? GetBuildFailureReason(BuildingType type)
+    {
+        if (!CanBuildMore) return $"Досягнуто ліміту: {GameConfig.MaxCityBuildings} будівель.";
+        if (type.Kind is BuildingKind.Market or BuildingKind.Workshop && _buildings.Any(b => b.Kind == type.Kind))
+            return $"Будівля «{type.Name}» вже є в місті: дозволено лише одну.";
+        if (GetAvailability(type) == BuildingStatus.Locked)
+            return $"Будівля «{type.Name}» заблокована: спершу вивчіть потрібну навичку.";
+        if (!_owner.CanAfford(type.BuildResources)) return "Недостатньо ресурсів для будівництва.";
+        return null;
+    }
+
+    public bool CanBuildMore => _buildings.Count < GameConfig.MaxCityBuildings;
 
     /// <summary>Населення: сума місткості житлових будівель з урахуванням рівня. Обчислюється, не вводиться.</summary>
     public int Population => _buildings.OfType<ResidentialBuilding>()
@@ -49,16 +76,27 @@ public sealed class City
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (GetAvailability(type) == BuildingStatus.Locked)
-            throw new GameRuleException($"Будівля «{type.Name}» заблокована: спершу вивчіть потрібну навичку.");
-        if (!_owner.SpendGold(type.BuildCost))
-            throw new GameRuleException($"Недостатньо валюти: потрібно {type.BuildCost}, є {_owner.Gold}.");
-
+        var reason = GetBuildFailureReason(type);
+        if (reason is not null) throw new GameRuleException(reason);
+        if (!_owner.SpendResources(type.BuildResources))
+            throw new GameRuleException("Недостатньо ресурсів для будівництва.");
         var building = BuildingFactory.Create(type);
         building.Build();
         AddBuilding(building);
         _dispatcher.Publish(new GameEvent(GameEventType.BuildingBuilt));
         return building;
+    }
+
+    /// <summary>Зносить власну будівлю та повертає половину фактичних витрат кожного ресурсу. Повторне знесення неможливе.</summary>
+    public ResourceAmounts RemoveBuilding(Building building)
+    {
+        ArgumentNullException.ThrowIfNull(building);
+        if (!_buildings.Remove(building))
+            throw new GameRuleException($"Будівлю «{building.Name}» не знайдено в місті.");
+
+        var refund = building.DemolitionResources;
+        _owner.AddResources(refund);
+        return refund;
     }
 
     /// <summary>Чи можна покращити будівлю: перевіряє наявність, рівень, статус і наявність валюти.</summary>
@@ -84,9 +122,9 @@ public sealed class City
             return false;
         }
 
-        if (_owner.Gold < building.UpgradeCost)
+        if (!_owner.CanAfford(building.UpgradeResources))
         {
-            reason = $"Недостатньо валюти: потрібно {building.UpgradeCost}, є {_owner.Gold}.";
+            reason = "Недостатньо ресурсів для покращення.";
             return false;
         }
 
@@ -116,12 +154,12 @@ public sealed class City
         if (!CanUpgradeBuilding(building, out var reason))
             throw new GameRuleException(reason!);
 
-        if (!_owner.SpendGold(building.UpgradeCost))
-            throw new GameRuleException($"Недостатньо валюти: потрібно {building.UpgradeCost}, є {_owner.Gold}.");
+        if (!_owner.SpendResources(building.UpgradeResources))
+            throw new GameRuleException("Недостатньо ресурсів для покращення.");
 
         if (!building.Upgrade())
         {
-            _owner.AddGold(building.UpgradeCost);
+            _owner.AddResources(building.UpgradeResources);
             return false;
         }
 
@@ -145,27 +183,30 @@ public sealed class City
     }
 
     /// <summary>Нараховує дохід усіх активних будівель за один тік. Повертає суму.</summary>
-    public int CollectAllIncome()
-    {
-        var total = _buildings.Sum(b => b.CollectIncome());
-        if (total <= 0) return 0;
+    public int CollectAllIncome() => CollectAllResources().Gold;
 
-        _owner.AddGold(total);
-        _dispatcher.Publish(new GameEvent(GameEventType.GoldEarned, total));
+    public ResourceAmounts CollectAllResources()
+    {
+        var total = _buildings.Aggregate(new ResourceAmounts(), (sum, b) => sum.Add(b.OutputPerTick));
+        _owner.AddResources(total);
+        if (total.Gold > 0) _dispatcher.Publish(new GameEvent(GameEventType.GoldEarned, total.Gold));
         return total;
     }
-
     /// <summary>Один тік симуляції. Викликається з UI за таймером; у стані «Пауза» не викликається.</summary>
     public void Tick()
     {
         CollectAllIncome();
-        Market.UpdatePrices();
+        if (HasMarket) Market.UpdatePrices();
     }
 
     private void AddBuilding(Building building)
     {
         if (building is MarketBuilding market) market.Market = Market;
-        if (building is WorkshopBuilding workshop) workshop.Dispatcher = _dispatcher;
+        if (building is WorkshopBuilding workshop)
+        {
+            workshop.Dispatcher = _dispatcher;
+            workshop.IsAccessible = () => _buildings.Contains(workshop);
+        }
         _buildings.Add(building);
     }
 }

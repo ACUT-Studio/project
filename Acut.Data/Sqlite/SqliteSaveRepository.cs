@@ -72,20 +72,20 @@ public sealed class SqliteSaveRepository : ISaveRepository
     {
         SqlHelper.Execute(c, tx, """
             INSERT INTO Player (SaveId, Name, Level, Experience, Gold, Health, MaxHealth, AttackPower,
-                                Defense, SkillPoints, HairStyle, SkinColor, Outfit)
+                                Defense, SkillPoints, HairStyle, SkinColor, Outfit, Wood, Stone)
             VALUES ($save, $name, $level, $exp, $gold, $health, $maxHealth, $attack,
-                    $defense, $points, $hair, $skin, $outfit)
+                    $defense, $points, $hair, $skin, $outfit, $wood, $stone)
             ON CONFLICT(SaveId) DO UPDATE SET
                 Name = excluded.Name, Level = excluded.Level, Experience = excluded.Experience,
                 Gold = excluded.Gold, Health = excluded.Health, MaxHealth = excluded.MaxHealth,
                 AttackPower = excluded.AttackPower, Defense = excluded.Defense,
                 SkillPoints = excluded.SkillPoints, HairStyle = excluded.HairStyle,
-                SkinColor = excluded.SkinColor, Outfit = excluded.Outfit
+                SkinColor = excluded.SkinColor, Outfit = excluded.Outfit, Wood = excluded.Wood, Stone = excluded.Stone
             """,
             ("$save", saveId), ("$name", p.Name), ("$level", p.Level), ("$exp", p.Experience),
             ("$gold", p.Gold), ("$health", p.Health), ("$maxHealth", p.MaxHealth),
             ("$attack", p.AttackPower), ("$defense", p.Defense), ("$points", p.SkillPoints),
-            ("$hair", p.Appearance.HairStyle), ("$skin", p.Appearance.SkinColor), ("$outfit", p.Appearance.Outfit));
+            ("$hair", p.Appearance.HairStyle), ("$skin", p.Appearance.SkinColor), ("$outfit", p.Appearance.Outfit), ("$wood", p.Wood), ("$stone", p.Stone));
 
         return Convert.ToInt64(SqlHelper.Scalar(c, tx, "SELECT PlayerId FROM Player WHERE SaveId = $save", ("$save", saveId)));
     }
@@ -109,11 +109,12 @@ public sealed class SqliteSaveRepository : ISaveRepository
         foreach (var b in city.GetBuildings())
         {
             SqlHelper.Execute(c, tx, """
-                INSERT INTO CityBuilding (BuildingId, CityId, BuildingTypeId, Level, Status)
-                VALUES ($id, $city, $type, $level, $status)
+                INSERT INTO CityBuilding (BuildingId, CityId, BuildingTypeId, Level, Status, SpentGold, SpentWood, SpentStone)
+                VALUES ($id, $city, $type, $level, $status, $spentGold, $spentWood, $spentStone)
                 """,
                 ("$id", b.Id.ToString()), ("$city", cityId), ("$type", b.TypeId),
-                ("$level", b.Level), ("$status", b.Status.ToString()));
+                ("$level", b.Level), ("$status", b.Status.ToString()),
+                ("$spentGold", b.InvestedResources.Gold), ("$spentWood", b.InvestedResources.Wood), ("$spentStone", b.InvestedResources.Stone));
         }
     }
 
@@ -328,7 +329,7 @@ public sealed class SqliteSaveRepository : ISaveRepository
         return new StockMarket(stocks);
     }
 
-    private static City LoadCity(
+    private City LoadCity(
         SqliteConnection connection, Player player, GameEventDispatcher dispatcher, StockMarket market,
         string saveId, Dictionary<int, BuildingType> buildingTypes)
     {
@@ -337,18 +338,19 @@ public sealed class SqliteSaveRepository : ISaveRepository
         SqlHelper.Read(connection, "SELECT CityId, Name, CityLevel FROM City WHERE SaveId = $save", r =>
         {
             cityId = r.GetLong("CityId");
-            city = new City(r.GetStr("Name"), player, dispatcher, r.GetInt("CityLevel"), market);
+            city = new City(r.GetStr("Name"), player, dispatcher, r.GetInt("CityLevel"), market, new Shop(_catalog, dispatcher));
         }, ("$save", saveId));
         if (city is null)
             throw new InvalidDataException("Збереження пошкоджене: відсутній запис міста.");
 
         var loadedCity = city;
         SqlHelper.Read(connection,
-            "SELECT BuildingId, BuildingTypeId, Level, Status FROM CityBuilding WHERE CityId = $city ORDER BY rowid", r =>
+            "SELECT BuildingId, BuildingTypeId, Level, Status, SpentGold, SpentWood, SpentStone FROM CityBuilding WHERE CityId = $city ORDER BY rowid", r =>
             {
                 if (!buildingTypes.TryGetValue(r.GetInt("BuildingTypeId"), out var type)) return;
                 var building = BuildingFactory.Create(type);
-                building.Restore(Guid.Parse(r.GetStr("BuildingId")), r.GetInt("Level"), r.GetEnum<BuildingStatus>("Status"));
+                building.Restore(Guid.Parse(r.GetStr("BuildingId")), r.GetInt("Level"), r.GetEnum<BuildingStatus>("Status"),
+                    new ResourceAmounts(r.GetInt("SpentGold"), r.GetInt("SpentWood"), r.GetInt("SpentStone")));
                 loadedCity.RestoreBuilding(building);
             }, ("$city", cityId));
 

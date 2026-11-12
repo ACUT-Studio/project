@@ -63,7 +63,7 @@ public class DatabaseInitializerTests
 
         // Act & Assert
         Assert.Contains(skills[1], skills[2].Prerequisites);
-        Assert.Single(skills[3].UnlocksBuildings);
+        Assert.Empty(skills[3].UnlocksBuildings); // Доступ до ринку тепер відкриває сама будівля.
     }
 
     [Fact]

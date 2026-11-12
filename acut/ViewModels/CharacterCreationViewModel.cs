@@ -26,7 +26,7 @@ public sealed class CharacterCreationViewModel : ViewModelBase
         _catalog = catalog;
         _dialogs = dialogs;
 
-        ConfirmCommand = new RelayCommand(Confirm);
+        ConfirmCommand = new RelayCommand(Confirm, () => NameError is null);
         CancelCommand = new RelayCommand(() => _navigation.NavigateTo<MainMenuViewModel>());
     }
 
@@ -34,7 +34,17 @@ public sealed class CharacterCreationViewModel : ViewModelBase
     public string[] SkinColors { get; } = ["Light", "Tan", "Dark"];
     public string[] Outfits { get; } = ["Traveler", "Merchant", "Knight"];
 
-    public string Name { get => _name; set => SetProperty(ref _name, value); }
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (!SetProperty(ref _name, value)) return;
+            OnPropertyChanged(nameof(NameError));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        }
+    }
+    public string? NameError => GameSession.GetPlayerNameError(Name);
     public string HairStyle { get => _hairStyle; set => SetProperty(ref _hairStyle, value); }
     public string SkinColor { get => _skinColor; set => SetProperty(ref _skinColor, value); }
     public string Outfit { get => _outfit; set => SetProperty(ref _outfit, value); }
@@ -44,6 +54,7 @@ public sealed class CharacterCreationViewModel : ViewModelBase
 
     private void Confirm()
     {
+        if (NameError is not null) return;
         try
         {
             var session = GameSession.StartNewGame(Name, new AppearanceSettings(HairStyle, SkinColor, Outfit), _catalog);

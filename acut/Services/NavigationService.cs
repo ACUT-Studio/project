@@ -28,7 +28,7 @@ public sealed class NavigationService : ViewModelBase
         (previous as IDisposable)?.Dispose();
     }
 
-    /// <summary>Відповідність стану гри екрану. Пауза поки що веде на екран налаштувань (етап 6).</summary>
+    /// <summary>Відповідність стану гри екрану. Пауза відображається поверх міста.</summary>
     public void NavigateTo(GameState state)
     {
         switch (state)
@@ -39,7 +39,7 @@ public sealed class NavigationService : ViewModelBase
             case GameState.Battle: NavigateTo<BattleViewModel>(); break;
             case GameState.Victory:
             case GameState.Defeat: NavigateTo<VictoryViewModel>(); break;
-            case GameState.Paused: NavigateTo<SettingsViewModel>(); break;
+            case GameState.Paused: NavigateTo<CityViewModel>(); break;
             default: throw new ArgumentOutOfRangeException(nameof(state), state, null);
         }
     }

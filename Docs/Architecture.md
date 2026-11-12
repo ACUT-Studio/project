@@ -75,6 +75,8 @@ flowchart LR
     Tests --> Data
 ```
 
+Для перевірки WPF ViewModel та XAML додано окремий проєкт `Acut.Ui.Tests` (`net10.0-windows`, xUnit), який посилається на `acut`. Він перевіряє лобі, паузу, створення персонажа та завантаження ресурсів у STA-потоці із заглушками репозиторіїв. `Acut.Tests` залишається незалежним від WPF; обидва проєкти запускаються командою `dotnet test acut.slnx`.
+
 `acut` одночасно є **composition root**: саме там створюються репозиторії й сервіси та передаються у ViewModel.
 
 ### 3.2 Структура каталогів
@@ -132,6 +134,8 @@ project/
 | **NavigationService** | Перемикання екранів. Реагує на зміни `GameSession.CurrentState` (меню, місто, бій, пауза тощо) |
 | **Таймер симуляції** | `DispatcherTimer`, який викликає `City.Tick()`. Зупиняється у стані «Пауза» (за діаграмою станів) |
 
+Лобі відображає будівлі на сітці з автоматичним перенесенням комірок за шириною вікна; комірки визначаються порядком будівель у місті (цей порядок відновлює репозиторій). Це лише розміщення в UI: нових координат у БД немає. Комірки мають сталий розмір 130×110; ScrollViewer прокручує місто лише вертикально, не зменшуючи будівлі зі зростанням кількості рядів. Біля кожної будівлі показано її поточний рівень. Вибір будівлі відкриває інформацію та покращення; каталог відкривається окремою кнопкою й залишається відкритим після покупки. Для цих панелей завжди відведено окрему колонку праворуч: вони не перекривають сітку та не змінюють її розмір під час відкриття. Текстури для наявних записів каталогу задає атлас `acut/Assets/Buildings/buildings-atlas.png`, зареєстрований як WPF `Resource`; відповідність `BuildingTypeId` фрагментам атласу зберігається в `Styles/GameStyles.xaml`. Невідомий тип отримує резервну текстуру. Після «Продовжити» з головного меню збережений стан `Paused` переходить у `City` до відкриття лобі; ручна пауза під час гри зупиняє таймер.
+
 ### 4.2 Шар Core (`Acut.Core`)
 
 | Компонент | Відповідальність |
@@ -147,6 +151,12 @@ project/
 | **Domain-клас `Item`, `Inventory`, `Recipe`** | Предмети, інвентар, крафтинг зілля |
 | **Domain-клас `SkillTree`, `QuestLog`, `AchievementTracker`, `PlayerStatistics`** | Прогрес гравця |
 | **ISaveRepository, ICatalogRepository** | Контракти доступу до даних (тільки інтерфейси) |
+
+Місто дозволяє до 50 будівель. Золото, деревина й камінь представлені ResourceAmounts; Player.SpendResources списує вартість атомарно. Вартість побудови й покращення має три незалежні складові в каталозі. Building.OutputPerTick повертає конкретний ресурс: хатини — золото, лісопил — деревину, шахта — камінь. Майстерня та ринок нічого не виробляють, допускаються по одному екземпляру кожного виду й відкривають відповідно крафт зілля та торгівлю предметами/акціями; після продажу доступ закривається в Core та UI. Навички залишаються окремою системою прогресу, але новий ресурсний каталог не вимагає їх для цих будівель.
+
+Початковий стан задає EconomySettings у seed.sql: 0 золота, 150 дерева, 0 каменю та безкоштовний лісопил (BuildingTypeId = 3). Дерева вистачає рівно на шахту; її разом із хатинами купують за дерево. Кам'яна хатина, майстерня та ринок потребують усіх трьох ресурсів.
+
+Building.InvestedResources зберігає фактично витрачені ресурси; безкоштовна стартова будівля має нульові вкладення. Продаж через City.RemoveBuilding повертає Building.DemolitionResources — половину кожної складової з округленням донизу. Повернення не зараховується як зароблений дохід. Баланси та вкладення зберігаються разом із рештою стану однією транзакцією.
 
 ### 4.3 Шар Data (`Acut.Data`)
 
@@ -228,7 +238,7 @@ sequenceDiagram
     Гравець->>V: Натискає «Побудувати»
     V->>VM: BuildCommand.Execute(тип будівлі)
     VM->>C: BuildBuilding(type)
-    C->>P: SpendGold(BuildCost)
+    C->>P: SpendResources(type.BuildResources)
     alt Валюти недостатньо
         P-->>C: false
         C-->>VM: помилка
@@ -332,6 +342,8 @@ erDiagram
         INTEGER Level
         INTEGER Experience
         INTEGER Gold
+        INTEGER Wood
+        INTEGER Stone
         INTEGER Health
         INTEGER MaxHealth
         INTEGER AttackPower
@@ -353,7 +365,11 @@ erDiagram
         TEXT Kind "Residential, Production, Workshop, Market"
         TEXT Name
         INTEGER BuildCost
+        INTEGER BuildWoodCost
+        INTEGER BuildStoneCost
         INTEGER UpgradeCost
+        INTEGER UpgradeWoodCost
+        INTEGER UpgradeStoneCost
         INTEGER MaxLevel
         INTEGER IncomePerTick
         INTEGER Capacity "для житлових"
@@ -367,6 +383,9 @@ erDiagram
         INTEGER BuildingTypeId FK
         INTEGER Level
         TEXT Status
+        INTEGER SpentGold
+        INTEGER SpentWood
+        INTEGER SpentStone
     }
     ItemDefinition {
         INTEGER ItemId PK
@@ -525,6 +544,8 @@ erDiagram
 **Підтримка кількох збережень:** `GameSave` має власний `SaveId`, тому в одному файлі БД можна зберігати кілька гер.
 
 **Розташування файлу БД:** `%LocalAppData%\AcutStudio\acut.db`.
+
+Версія 2 додає Player.Wood/Stone, складові ресурсних цін у BuildingType, SpentGold/Wood/Stone у CityBuilding та EconomySettings. schema.sql лишається базовою схемою v1: для нової БД спочатку застосовуються міграції, потім актуальний seed.sql. migration_002.sql зберігає старі золоті вкладення, переводить ферму в лісопил, видає старим містам джерело дерева за наявності місця та зводить дублікати спеціальних будівель до одного екземпляра з поверненням 50% старих вкладень. Повторний запуск міграцій не змінює стан.
 
 **Версіонування схеми:** `PRAGMA user_version`. Якщо версія файлу нижча за очікувану, `DatabaseInitializer` застосовує скрипти міграції по черзі.
 

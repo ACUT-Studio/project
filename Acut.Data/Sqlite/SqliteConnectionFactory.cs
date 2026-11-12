@@ -20,6 +20,14 @@ public sealed class SqliteConnectionFactory
         _connectionString = new SqliteConnectionStringBuilder { DataSource = databasePath }.ToString();
     }
 
+    /// <summary>Налаштоване SQLite-з'єднання, зокрема спільна БД у пам'яті для інтеграційних тестів.</summary>
+    public SqliteConnectionFactory(SqliteConnectionStringBuilder options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        DatabasePath = options.DataSource;
+        _connectionString = options.ToString();
+    }
+
     public string DatabasePath { get; }
 
     /// <summary>%LocalAppData%\AcutStudio\acut.db</summary>

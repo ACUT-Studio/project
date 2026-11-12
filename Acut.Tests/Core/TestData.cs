@@ -11,7 +11,7 @@ namespace Acut.Tests.Core;
 internal sealed class FakeCatalog : ICatalogRepository
 {
     public static readonly BuildingType Hut = new(1, BuildingKind.Residential, "Хатина", 100, 80, 3, 2, 4, null, 0, null);
-    public static readonly BuildingType Mine = new(2, BuildingKind.Production, "Шахта", 400, 300, 3, 10, 0, "Ore", 1, 1);
+    public static readonly BuildingType Mine = new(2, BuildingKind.Production, "Шахта", 400, 300, 3, 10, 0, "Stone", 1, 1);
     public static readonly BuildingType Workshop = new(3, BuildingKind.Workshop, "Майстерня", 600, 450, 3, 0, 0, null, 0, null);
 
     public static readonly Potion SmallHealPotion = new(1, "Мале зілля лікування", "Відновлює 25 HP", 30, PotionEffect.Heal, 25);
@@ -28,6 +28,7 @@ internal sealed class FakeCatalog : ICatalogRepository
     public static readonly Stock AgroStock = new(1, "AGRO", "Агро-Холдинг", 100m, 0.05m);
     public static readonly Stock MineStock = new(2, "MINE", "ГірМаш", 250m, 0.10m);
 
+    public NewGameEconomy GetNewGameEconomy() => new(new ResourceAmounts(500));
     public IReadOnlyList<BuildingType> GetBuildingTypes() => new[] { Hut, Mine, Workshop };
     public IReadOnlyList<Item> GetItems() => new Item[] { SmallHealPotion, LargeHealPotion, IronSword, LeatherArmor };
     public IReadOnlyList<Recipe> GetRecipes() => new[] { LargeHealRecipe };

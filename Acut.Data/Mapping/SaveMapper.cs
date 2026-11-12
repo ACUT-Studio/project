@@ -16,7 +16,7 @@ internal static class SaveMapper
         health: r.GetInt("Health"),
         maxHealth: r.GetInt("MaxHealth"),
         attackPower: r.GetInt("AttackPower"),
-        defense: r.GetInt("Defense"));
+        defense: r.GetInt("Defense"), wood: r.GetInt("Wood"), stone: r.GetInt("Stone"));
 
     /// <summary>Дата й час: ISO 8601, завжди UTC.</summary>
     public static string FormatDate(DateTime value) =>

@@ -12,6 +12,7 @@ public class SaveLoadRoundtripTests
     private static GameSession NewGame(TestDatabase db)
     {
         var session = GameSession.StartNewGame("Марк", null, db.Catalog);
+        session.Player.AddResources(new ResourceAmounts(wood: 500));
         new SaveManager(db.Saves).Register(session);
         return session;
     }
@@ -40,7 +41,7 @@ public class SaveLoadRoundtripTests
         Assert.Equal(session.Player.Name, loaded.Player.Name);
         Assert.Equal(session.Player.Gold, loaded.Player.Gold);
         Assert.Equal(session.Player.SkillPoints, loaded.Player.SkillPoints);
-        Assert.Equal(2, loaded.City.GetBuildings().Count);
+        Assert.Equal(3, loaded.City.GetBuildings().Count);
         Assert.Equal(session.City.GetBuildings()[0].Id, loaded.City.GetBuildings()[0].Id);
         Assert.Equal(session.City.Population, loaded.City.Population);
         Assert.Equal(2, loaded.Player.Statistics.BuildingsBuilt);
@@ -90,7 +91,7 @@ public class SaveLoadRoundtripTests
         var loaded = db.Saves.Load(session.SessionId)!;
 
         // Assert
-        var loadedHut = loaded.City.GetBuildings().Single();
+        var loadedHut = loaded.City.GetBuildings().Single(b => b.TypeId == hutType.Id);
         Assert.Equal(2, loadedHut.Level);
         Assert.Equal(BuildingStatus.Active, loadedHut.Status);
 
@@ -115,7 +116,7 @@ public class SaveLoadRoundtripTests
         Assert.Equal(1, db.Count("GameSave"));
         Assert.Equal(1, db.Count("Player"));
         Assert.Equal(1, db.Count("City"));
-        Assert.Equal(1, db.Count("CityBuilding"));
+        Assert.Equal(2, db.Count("CityBuilding"));
     }
 
     [Fact]
