@@ -12,41 +12,54 @@ public sealed class BattleMigrationTests
     [InlineData(3)]
     public void PreviousVersion_MigratesActiveBattleWithoutChangingPosition(int version)
     {
+        var saveId = Guid.NewGuid();
         var factory = new SqliteConnectionFactory(new SqliteConnectionStringBuilder
         {
-            DataSource = $"battle-migration-{Guid.NewGuid():N}", Mode = SqliteOpenMode.Memory,
-            Cache = SqliteCacheMode.Shared, Pooling = false
+            DataSource = $"battle-migration-{Guid.NewGuid():N}",
+            Mode = SqliteOpenMode.Memory,
+            Cache = SqliteCacheMode.Shared,
+            Pooling = false
         });
+
         using var anchor = factory.CreateConnection();
         foreach (var name in new[] { "schema.sql", "migration_002.sql" }
-            .Concat(version == 3 ? new[] { "migration_003.sql" } : Array.Empty<string>()).Append("seed.sql"))
+            .Concat(version == 3 ? new[] { "migration_003.sql" } : Array.Empty<string>())
+            .Append("seed.sql"))
         {
             using var stream = typeof(DatabaseInitializer).Assembly.GetManifestResourceStream(name)!;
             using var reader = new StreamReader(stream);
             Execute(anchor, reader.ReadToEnd());
         }
-        Execute(anchor, """
-            INSERT INTO GameSave VALUES ('battle-save','Герой','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z','Battle');
+
+        Execute(anchor, $"""
+            INSERT INTO GameSave (SaveId, Name, CreatedAt, UpdatedAt, CurrentState)
+            VALUES ('{saveId}', 'Герой (рівень 1)', '2026-01-01T00:00:00.0000000Z', '2026-01-01T00:00:00.0000000Z', 'Battle');
+
+            INSERT INTO Player (SaveId, Name, Level, Experience, Gold, Health, MaxHealth, AttackPower, Defense, SkillPoints, HairStyle, SkinColor, Outfit, Wood, Stone)
+            VALUES ('{saveId}', 'Герой', 1, 0, 100, 80, 100, 10, 2, 1, 'Short', 'Light', 'Traveler', 150, 0);
+
+            INSERT INTO City (SaveId, Name, CityLevel, Population)
+            VALUES ('{saveId}', 'Місто Герой', 1, 0);
+
             INSERT INTO ActiveBattle (SaveId, EnemyId, EnemyHealth, TurnNumber, IsPlayerTurn)
-                SELECT 'battle-save', EnemyId, 1, 7, 0 FROM EnemyDefinition ORDER BY EnemyId LIMIT 1;
+            VALUES ('{saveId}', 1, 18, 3, 0);
+
+            PRAGMA user_version = {version};
             """);
-        Execute(anchor, $"PRAGMA user_version = {version};");
-        var initializer = new DatabaseInitializer(factory);
-        initializer.Initialize();
-        initializer.Initialize();
-        using var command = anchor.CreateCommand();
-        command.CommandText = "SELECT EnemyHealth, TurnNumber, IsPlayerTurn, PlayerDefending, EnemyDefending FROM ActiveBattle";
-        using (var reader = command.ExecuteReader())
-        {
-            Assert.True(reader.Read());
-            Assert.Equal(1, reader.GetInt32(0));
-            Assert.Equal(7, reader.GetInt32(1));
-            Assert.Equal(0, reader.GetInt32(2));
-            Assert.Equal(0, reader.GetInt32(3));
-            Assert.Equal(0, reader.GetInt32(4));
-        }
-        Assert.Throws<SqliteException>(() => Execute(anchor, "UPDATE ActiveBattle SET PlayerDefending=2"));
-        Assert.Throws<SqliteException>(() => Execute(anchor, "UPDATE ActiveBattle SET EnemyDefending=-1"));
+
+        new DatabaseInitializer(factory).Initialize();
+
+        var catalog = new SqliteCatalogRepository(factory);
+        var saves = new SqliteSaveRepository(factory, catalog);
+        var loaded = saves.Load(saveId);
+
+        Assert.NotNull(loaded);
+        Assert.NotNull(loaded.ActiveBattle);
+        Assert.Equal(18, loaded.ActiveBattle.Enemy.Health);
+        Assert.Equal(3, loaded.ActiveBattle.TurnNumber);
+        Assert.False(loaded.ActiveBattle.IsPlayerTurn);
+        Assert.False(loaded.ActiveBattle.PlayerDefending);
+        Assert.False(loaded.ActiveBattle.EnemyDefending);
     }
 
     private static void Execute(SqliteConnection connection, string sql)

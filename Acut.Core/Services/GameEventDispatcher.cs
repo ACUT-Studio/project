@@ -11,7 +11,8 @@ public sealed class GameEventDispatcher
     public void Subscribe(Action<GameEvent> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-        _subscribers.Add(handler);
+        if (!_subscribers.Contains(handler))
+            _subscribers.Add(handler);
     }
 
     public void Publish(GameEvent e)
@@ -24,6 +25,7 @@ public sealed class GameEventDispatcher
     /// <summary>
     /// Підписує прогрес гравця. Порядок важливий: спершу статистика,
     /// бо досягнення перевіряються за накопиченими лічильниками.
+    /// Повторний виклик для того самого гравця є безпечним (ідемпотентним).
     /// </summary>
     public void Attach(Player player)
     {
