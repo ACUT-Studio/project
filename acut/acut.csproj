@@ -1,27 +1,45 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Acut.Core\Acut.Core.csproj" />
-    <ProjectReference Include="..\Acut.Data\Acut.Data.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Acut.Core\Acut.Core.csproj" />
+		<ProjectReference Include="..\Acut.Data\Acut.Data.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Assets\Buildings\buildings-atlas.png" />
-    <Resource Include="Assets\Buildings\buildings-atlas.png" />
-    <None Remove="Assets\Buildings\sawmill.png" />
-    <Resource Include="Assets\Buildings\sawmill.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Assets\Buildings\buildings-atlas.png" />
+		<None Remove="Assets\Characters\outfit_1-skin_1.png" />
+		<None Remove="Assets\Characters\outfit_1-skin_2.png" />
+		<None Remove="Assets\Characters\outfit_1-skin_3.png" />
+		<None Remove="Assets\Characters\skin_1.png" />
+		<None Remove="Assets\Characters\skin_2.png" />
+		<None Remove="Assets\Characters\skin_3.png" />
+		<None Remove="Assets\City\city-map-bg.jpg" />
+		<None Remove="Assets\City\city-map-bg.png" />
+		<None Remove="Assets\City\city-map-bgb.png" />
+		<None Remove="Assets\City\empty-plot.png" />
+		<None Remove="Assets\main_menu_bg.png" />
+		<Resource Include="Assets\Characters\outfit_1-skin_1.png" />
+		<Resource Include="Assets\Characters\outfit_1-skin_2.png" />
+		<Resource Include="Assets\Characters\outfit_1-skin_3.png" />
+		<Resource Include="Assets\Characters\skin_1.png" />
+		<Resource Include="Assets\Characters\skin_2.png" />
+		<Resource Include="Assets\Characters\skin_3.png" />
+		<Resource Include="Assets\Buildings\buildings-atlas.png" />
+		<Resource Include="Assets\City\city-map-bgb.png" />
+		<Resource Include="Assets\City\empty-plot.png" />
+		<Resource Include="Assets\main_menu_bg.png" />
+	</ItemGroup>
 
 </Project>

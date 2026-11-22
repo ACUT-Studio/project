@@ -44,7 +44,7 @@
     <BitmapImage x:Key="BuildingAtlas" UriSource="/acut;component/Assets/Buildings/buildings-atlas.png" CacheOption="OnLoad" />
     <CroppedBitmap x:Key="BuildingTexture1" Source="{StaticResource BuildingAtlas}" SourceRect="0,0,512,512" />
     <CroppedBitmap x:Key="BuildingTexture2" Source="{StaticResource BuildingAtlas}" SourceRect="512,0,512,512" />
-    <BitmapImage x:Key="BuildingTexture3" UriSource="/acut;component/Assets/Buildings/sawmill.png" />
+    <CroppedBitmap x:Key="BuildingTexture3" Source="{StaticResource BuildingAtlas}" SourceRect="1024,0,512,512" />
     <CroppedBitmap x:Key="BuildingTexture4" Source="{StaticResource BuildingAtlas}" SourceRect="0,512,512,512" />
     <CroppedBitmap x:Key="BuildingTexture5" Source="{StaticResource BuildingAtlas}" SourceRect="512,512,512,512" />
     <CroppedBitmap x:Key="BuildingTexture6" Source="{StaticResource BuildingAtlas}" SourceRect="1024,512,512,512" />

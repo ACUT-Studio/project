@@ -22,10 +22,13 @@ public sealed record BuildingRow(Building Building, string Name, int Level, stri
     public string RefundText => ResourceDisplay.Format(Building.DemolitionResources);
     public string IncomeText => ResourceDisplay.Format(Building.OutputPerTick);
 }
-public sealed record CityPlot(int Index, BuildingRow? Building, bool IsSelected)
+
+public sealed record CityPlot(int Index, BuildingRow? Building, bool IsSelected,
+    double X, double Y, double Width, double Height, double ScaleX)
 {
     public bool IsOccupied => Building is not null;
 }
+
 public sealed record BuildOption(BuildingType Type, string Name, int BuildCost, int Income, bool IsAvailable, string Hint)
 {
     public string CostText => ResourceDisplay.Format(Type.BuildResources);
@@ -37,6 +40,7 @@ public sealed record BuildOption(BuildingType Type, string Name, int BuildCost, 
         _ => new ResourceAmounts()
     });
 }
+
 public sealed record CraftingOption(Recipe Recipe, string Name, string Ingredients, bool CanCraft);
 public sealed record StockRow(Stock Stock, string Name, decimal Price, int Quantity);
 
@@ -56,10 +60,26 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     private bool _isEnemySelectionOpen;
     private bool _isProgressOpen;
     private readonly IReadOnlyList<Recipe> _recipes;
-    public const int MapColumns = 6;
-    private const int MinimumMapRows = 3;
-    public const int PlotWidth = 130;
-    public const int PlotHeight = 110;
+
+    public const int MaxPlotSlots = 11;
+    public const int PlotWidth = 112;
+    public const int PlotHeight = 112;
+
+    // Вивірені координати (X, Y), розміри (Width, Height) та віддзеркалення ScaleX для 11 ділянок (1280 x 714)
+    private static readonly (double X, double Y, double Width, double Height, double ScaleX)[] ElevenPlotSlots =
+    [
+        (110, 213, 148, 148,  1), // 1
+        (302, 206, 156, 156,  1), // 2
+        (395, 111, 132, 132,  1), // 3
+        (538,  41, 140, 140,  1), // 4
+        (667,  32, 152, 152, -1), // 5
+        (862,  -9, 168, 168, -1), // 6
+        (677, 193, 164, 164, -1), // 7
+        (954, 195, 162, 162, -1), // 8
+        (414, 312, 170, 170,  1), // 9
+        (802, 350, 188, 188, -1), // 10
+        (330, 473, 178, 194,  1)  // 11
+    ];
 
     public CityViewModel(NavigationService navigation, SaveManager saves, ICatalogRepository catalog)
     {
@@ -73,7 +93,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         CloseProgressCommand = new RelayCommand(() => IsProgressOpen = false);
 
         BuildCommand = new RelayCommand(p => Build(p as BuildOption),
-            p => !_disposed && !IsPaused && _session.City.CanBuildMore && p is BuildOption { IsAvailable: true });
+            p => !_disposed && !IsPaused && _session.City.CanBuildMore && Buildings.Count < MaxPlotSlots && p is BuildOption { IsAvailable: true });
         UpgradeCommand = new RelayCommand(p => Upgrade(p as BuildingRow),
             p => !IsPaused && p is BuildingRow row && _session.City.CanUpgradeBuilding(row.Building, out _));
         RemoveBuildingCommand = new RelayCommand(p => RemoveBuilding(p as BuildingRow),
@@ -157,7 +177,7 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
     public AppearanceSettings Appearance => _session.Player.Appearance;
     public string CityName => _session.City.Name;
     public int BuildingCount => Buildings.Count;
-    public int BuildingLimit => GameConfig.MaxCityBuildings;
+    public int BuildingLimit => Math.Min(GameConfig.MaxCityBuildings, MaxPlotSlots);
     public string BuildingCountText => $"Будівлі: {BuildingCount} / {BuildingLimit}";
     public int Gold => _session.Player.Gold;
     public int Wood => _session.Player.Wood;
@@ -242,21 +262,25 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
 
     private void RefreshPlots()
     {
-        var count = Math.Max(MapColumns * MinimumMapRows,
-            ((Buildings.Count + MapColumns - 1) / MapColumns) * MapColumns);
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < ElevenPlotSlots.Length; i++)
         {
             var row = i < Buildings.Count ? Buildings[i] : null;
-            var plot = new CityPlot(i, row, row is not null && row.Building.Id == SelectedBuilding?.Building.Id);
+            var (x, y, w, h, scaleX) = ElevenPlotSlots[i];
+            var plot = new CityPlot(i, row, row is not null && row.Building.Id == SelectedBuilding?.Building.Id, x, y, w, h, scaleX);
             if (i == Plots.Count) Plots.Add(plot);
             else if (Plots[i] != plot) Plots[i] = plot;
         }
-        while (Plots.Count > count) Plots.RemoveAt(Plots.Count - 1);
+        while (Plots.Count > ElevenPlotSlots.Length) Plots.RemoveAt(Plots.Count - 1);
     }
 
     private void Build(BuildOption? option)
     {
         if (option is null || IsPaused || _disposed) return;
+        if (Buildings.Count >= MaxPlotSlots)
+        {
+            StatusMessage = "Усі 11 ділянок у місті вже зайняті.";
+            return;
+        }
         try
         {
             var building = _session.City.BuildBuilding(option.Type);
@@ -403,9 +427,13 @@ public sealed class CityViewModel : ViewModelBase, IDisposable
         {
             var unlocked = _session.City.GetAvailability(type) == BuildingStatus.Available;
             var failure = _session.City.GetBuildFailureReason(type);
-            var available = failure is null;
+            var available = failure is null && Buildings.Count < MaxPlotSlots;
             var skill = _session.Player.SkillTree.Skills.FirstOrDefault(s => s.Id == type.RequiredSkillId);
-            var hint = !unlocked ? $"Потрібна навичка: {skill?.Name ?? type.RequiredSkillId?.ToString()}" : failure ?? "Доступна";
+            var hint = !unlocked
+                ? $"Потрібна навичка: {skill?.Name ?? type.RequiredSkillId?.ToString()}"
+                : Buildings.Count >= MaxPlotSlots
+                    ? "Немає вільних ділянок"
+                    : failure ?? "Доступна";
             var option = new BuildOption(type, type.Name, type.BuildCost, type.IncomePerTick, available, hint);
             if (index == BuildOptions.Count) BuildOptions.Add(option);
             else if (BuildOptions[index] != option) BuildOptions[index] = option;
