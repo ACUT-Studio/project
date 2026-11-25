@@ -32,7 +32,7 @@ jobs:
           --no-build
           --configuration Release
           --verbosity normal
-          --logger "trx;LogFileName=test-results.trx"
+          --logger "trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
 

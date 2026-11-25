@@ -38,22 +38,24 @@ public sealed class EdgeCaseUiTests
 
         var hutOption = vm.BuildOptions.First(o => o.Type.Id == UiFakeCatalog.Hut.Id);
 
-        // Початково є 1 будівля; будуємо ще 17 (разом 18 — рівно 3 рядки по 6)
-        for (var i = vm.BuildingCount; i < 18; i++)
+        
+        for (var i = vm.BuildingCount; i < 11; i++)
             vm.BuildCommand.Execute(hutOption);
 
-        Assert.Equal(18, vm.BuildingCount);
-        Assert.Equal(18, vm.Plots.Count);
+        Assert.Equal(11, vm.BuildingCount);
+        Assert.Equal(11, vm.Plots.Count);
+        Assert.Equal(11, vm.Plots.Count(p => p.IsOccupied));
+        Assert.False(vm.BuildCommand.CanExecute(hutOption));
 
-        // 19-та будівля переходить межу 18 і додає новий рядок (24 ділянки)
         vm.BuildCommand.Execute(hutOption);
-        Assert.Equal(19, vm.BuildingCount);
-        Assert.Equal(24, vm.Plots.Count);
+        Assert.Equal(11, vm.BuildingCount);
+        Assert.Equal(11, vm.Plots.Count);
 
-        // Знесення 19-ї будівлі стискає сітку назад до 18 ділянок
         vm.RemoveBuildingCommand.Execute(vm.Buildings.Last());
-        Assert.Equal(18, vm.BuildingCount);
-        Assert.Equal(18, vm.Plots.Count);
+        Assert.Equal(10, vm.BuildingCount);
+        Assert.Equal(11, vm.Plots.Count);
+        Assert.Equal(10, vm.Plots.Count(p => p.IsOccupied));
+        Assert.True(vm.BuildCommand.CanExecute(hutOption));
     }
 
     [Fact]
