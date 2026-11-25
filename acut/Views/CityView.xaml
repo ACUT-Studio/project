@@ -13,9 +13,12 @@
                 <RowDefinition Height="92" />
             </Grid.RowDefinitions>
 
-            <!-- Профіль ліворуч і панель ресурсів угорі, як у макеті Lobby.png. -->
+            <!-- Профіль ліворуч і панель ресурсів угорі -->
             <Grid Grid.ColumnSpan="2">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel Width="92">
                         <Grid Width="78" Height="78">
@@ -33,89 +36,167 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
                     <Border Style="{StaticResource HudCell}">
-                        <StackPanel><TextBlock Text="ЗОЛОТО" FontSize="10" HorizontalAlignment="Center" />
+                        <StackPanel>
+                            <TextBlock Text="ЗОЛОТО" FontSize="10" HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding Gold}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
-                            <TextBlock Text="{Binding IncomePerTick, StringFormat='+{0} / тік'}" FontSize="10" HorizontalAlignment="Center" /></StackPanel>
+                            <TextBlock Text="{Binding IncomePerTick, StringFormat='+{0} / тік'}" FontSize="10" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Border>
                     <Border Style="{StaticResource HudCell}">
-                        <StackPanel><TextBlock Text="ДЕРЕВИНА" FontSize="10" HorizontalAlignment="Center" />
+                        <StackPanel>
+                            <TextBlock Text="ДЕРЕВИНА" FontSize="10" HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding Wood}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
-                            <TextBlock Text="{Binding WoodPerTick, StringFormat='+{0} / тік'}" FontSize="10" HorizontalAlignment="Center" /></StackPanel>
+                            <TextBlock Text="{Binding WoodPerTick, StringFormat='+{0} / тік'}" FontSize="10" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Border>
                     <Border Style="{StaticResource HudCell}">
-                        <StackPanel><TextBlock Text="КАМІНЬ" FontSize="10" HorizontalAlignment="Center" />
+                        <StackPanel>
+                            <TextBlock Text="КАМІНЬ" FontSize="10" HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding Stone}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
-                            <TextBlock Text="{Binding StonePerTick, StringFormat='+{0} / тік'}" FontSize="10" HorizontalAlignment="Center" /></StackPanel>
+                            <TextBlock Text="{Binding StonePerTick, StringFormat='+{0} / тік'}" FontSize="10" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Border>
                     <Border Style="{StaticResource HudCell}">
-                        <StackPanel><TextBlock Text="НАСЕЛЕННЯ" FontSize="10" HorizontalAlignment="Center" />
-                            <TextBlock Text="{Binding Population}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" /></StackPanel>
-                    </Border>                    <Button Command="{Binding TogglePauseCommand}" Style="{StaticResource MapAction}" Width="62" Height="62"
+                        <StackPanel>
+                            <TextBlock Text="НАСЕЛЕННЯ" FontSize="10" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding Population}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <Button Command="{Binding TogglePauseCommand}" Style="{StaticResource MapAction}" Width="62" Height="62"
                             Margin="28,0,0,0" ToolTip="Пауза · Esc" AutomationProperties.Name="Пауза">
                         <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="30" />
                     </Button>
                 </StackPanel>
             </Grid>
 
-            <!-- Комірки мають сталий порядок; кількість рядів зростає разом із містом. -->
-            <ScrollViewer Grid.Row="1" IsEnabled="{Binding IsPlaying}" Margin="12,0,20,0" x:Name="CityMap"
-                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
-                <ItemsControl ItemsSource="{Binding Plots}" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate><WrapPanel ItemWidth="130" ItemHeight="110" /></ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Viewbox Width="130" Height="110">
-                            <Border Background="{StaticResource CityPlotGround}" Width="260" Height="220">
-                                <Button Style="{StaticResource MapBuilding}" Tag="{Binding IsSelected}"
-                                        Command="{Binding DataContext.SelectBuildingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding Building}"
-                                        AutomationProperties.Name="{Binding Building.Name, TargetNullValue='Вільна ділянка'}">
-                                    <Grid Width="200" Height="174"
-                                          Visibility="{Binding IsOccupied, Converter={StaticResource BooleanToVisibility}}">
-                                        <Image Source="{Binding Building.TypeId, Converter={StaticResource BuildingTexture}}"
-                                               Width="190" Height="174" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
-                                        <Border Style="{StaticResource BuildingLevelBadge}">
-                                            <TextBlock x:Name="BuildingLevelText" Text="{Binding Building.Level, StringFormat='Рів. {0}'}" />
-                                        </Border>
-                                    </Grid>
-                                </Button>
-                            </Border>
-                            </Viewbox>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <!-- Інтерактивна карта 1280 x 714 з 11 фіксованими ділянками -->
+            <Border Grid.Row="1" Margin="12,0,20,0" BorderBrush="#151715" BorderThickness="3" CornerRadius="4" ClipToBounds="True">
+                <ScrollViewer IsEnabled="{Binding IsPlaying}" x:Name="CityMap"
+                              VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                              CanContentScroll="False"
+                              PreviewMouseLeftButtonDown="CityMap_PreviewMouseLeftButtonDown"
+                              PreviewMouseMove="CityMap_PreviewMouseMove"
+                              PreviewMouseLeftButtonUp="CityMap_PreviewMouseLeftButtonUp"
+                              MouseLeave="CityMap_MouseLeave">
+                    <Grid Width="1280" Height="714">
+                        <Grid.Background>
+                            <ImageBrush ImageSource="pack://application:,,,/Assets/City/city-map-bgb.png"
+                                        Stretch="Fill"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                        </Grid.Background>
 
-            <!-- Нижня панель праворуч не забирає площу карти. -->
+                        <ItemsControl ItemsSource="{Binding Plots}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="1280" Height="714" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Width="{Binding Width}" Height="{Binding Height}"
+                                            Style="{StaticResource MapBuilding}" Background="Transparent" BorderThickness="0" Padding="0"
+                                            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                                            Tag="{Binding IsSelected}"
+                                            Command="{Binding DataContext.SelectBuildingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding Building}"
+                                            AutomationProperties.Name="{Binding Building.Name, TargetNullValue='Вільна ділянка'}">
+                                        <Grid>
+                                            <!-- Спрайт вільної ділянки: видно, поки пусто; зникає, коли збудовано будівлю -->
+                                            <Image Source="pack://application:,,,/Assets/City/empty-plot.png"
+                                                   Stretch="Fill"
+                                                   RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsOccupied}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+
+                                            <!-- Будівля -->
+                                            <Grid Visibility="{Binding IsOccupied, Converter={StaticResource BooleanToVisibility}}">
+                                                <Image Source="{Binding Building.TypeId, Converter={StaticResource BuildingTexture}}"
+                                                       Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                                       Margin="2"
+                                                       RenderTransformOrigin="0.5,0.5"
+                                                       RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                    <Image.RenderTransform>
+                                                        <ScaleTransform ScaleX="{Binding ScaleX}" ScaleY="1" />
+                                                    </Image.RenderTransform>
+                                                </Image>
+                                                <Border Style="{StaticResource BuildingLevelBadge}"
+                                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,2,0">
+                                                    <TextBlock x:Name="BuildingLevelText" Text="{Binding Building.Level, StringFormat='Рів. {0}'}" />
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Нижня панель праворуч -->
             <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,12,0,0">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding StatusMessage}" Foreground="#F1DB94" TextWrapping="Wrap"
                            VerticalAlignment="Center" Margin="8,0,20,0" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" IsEnabled="{Binding IsPlaying}">
                     <Button Command="{Binding OpenProgressCommand}" Style="{StaticResource MapDockAction}" AutomationProperties.Name="Прогрес">
-                        <StackPanel><Image x:Name="ProgressDockIcon" Source="{StaticResource ProgressBookIcon}" Height="39" /><TextBlock Text="Прогрес" HorizontalAlignment="Center" /></StackPanel>
+                        <StackPanel>
+                            <Image x:Name="ProgressDockIcon" Source="{StaticResource ProgressBookIcon}" Height="39" />
+                            <TextBlock Text="Прогрес" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                     <Button Command="{Binding OpenInventoryCommand}" Style="{StaticResource MapDockAction}">
-                        <StackPanel><Image Source="{StaticResource InventoryIcon}" Height="39" /><TextBlock Text="Інвентар" HorizontalAlignment="Center" /></StackPanel>
+                        <StackPanel>
+                            <Image Source="{StaticResource InventoryIcon}" Height="39" />
+                            <TextBlock Text="Інвентар" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                     <Button Command="{Binding ToggleConstructionCommand}" Style="{StaticResource MapDockAction}">
-                        <StackPanel><Image Source="{StaticResource BuildingTexture2}" Height="39" /><TextBlock Text="Будівництво" HorizontalAlignment="Center" /></StackPanel>
+                        <StackPanel>
+                            <Image Source="{StaticResource BuildingTexture2}" Height="39" />
+                            <TextBlock Text="Будівництво" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                     <Button Command="{Binding OpenCraftingCommand}" Style="{StaticResource MapDockAction}" ToolTip="{Binding CraftingHint}" ToolTipService.ShowOnDisabled="True">
-                        <StackPanel><Image Source="{StaticResource PotionIcon}" Height="39" /><TextBlock Text="Зілля" HorizontalAlignment="Center" /></StackPanel>
+                        <StackPanel>
+                            <Image Source="{StaticResource PotionIcon}" Height="39" />
+                            <TextBlock Text="Зілля" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                     <Button Command="{Binding OpenMarketCommand}" Style="{StaticResource MapDockAction}" ToolTip="{Binding MarketHint}" ToolTipService.ShowOnDisabled="True">
-                        <StackPanel><Image Source="{StaticResource BuildingTexture6}" Height="39" /><TextBlock Text="Ринок" HorizontalAlignment="Center" /></StackPanel>
+                        <StackPanel>
+                            <Image Source="{StaticResource BuildingTexture6}" Height="39" />
+                            <TextBlock Text="Ринок" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                     <Button Command="{Binding OpenBattleCommand}" Style="{StaticResource MapDockAction}" AutomationProperties.Name="В бій">
-                        <StackPanel><Image x:Name="BattleDockIcon" Source="{StaticResource InventoryWeaponIcon}" Height="39" /><TextBlock Text="В БІЙ" HorizontalAlignment="Center" /></StackPanel>
+                        <StackPanel>
+                            <Image x:Name="BattleDockIcon" Source="{StaticResource InventoryWeaponIcon}" Height="39" />
+                            <TextBlock Text="В БІЙ" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
 
-            <!-- Панелі відкриваються у відведеній колонці праворуч від сітки. -->
+            <!-- Панель будівництва -->
             <Border x:Name="ConstructionPanel" Grid.Row="1" Grid.Column="1" Style="{StaticResource MapPanel}" Width="320" HorizontalAlignment="Right"
                     Visibility="{Binding IsConstructionOpen, Converter={StaticResource BooleanToVisibility}}">
                 <DockPanel>
@@ -153,32 +234,34 @@
                 </DockPanel>
             </Border>
 
-            <!-- Інформація й покращення доступні лише після натискання на будівлю. -->
+            <!-- Панель деталей будівлі -->
             <Border x:Name="BuildingDetails" Grid.Row="1" Grid.Column="1" Style="{StaticResource MapPanel}" Width="320"
                     HorizontalAlignment="Right" VerticalAlignment="Stretch"
                     Visibility="{Binding IsBuildingSelected, Converter={StaticResource BooleanToVisibility}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <DockPanel>
-                        <Button DockPanel.Dock="Right" Content="×" Command="{Binding CloseDetailsCommand}" Style="{StaticResource MapAction}"
-                                AutomationProperties.Name="Закрити інформацію про будівлю" />
-                        <TextBlock Text="{Binding SelectedBuilding.Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Stretch" />
-                    </DockPanel>
-                    <Image Source="{Binding SelectedBuilding.TypeId, Converter={StaticResource BuildingTexture}}" Height="105" Margin="0,8" />
-                    <TextBlock Text="{Binding SelectedBuilding.Level, StringFormat='Рівень: {0}'}" Margin="0,4" />
-                    <TextBlock Text="{Binding SelectedBuilding.Status}" />
-                    <TextBlock Text="{Binding SelectedBuilding.IncomeText, StringFormat='За тік: {0}'}" Margin="0,4" />
-                    <TextBlock Text="{Binding SelectedBuilding.UpgradeCostText, StringFormat='Покращення: {0}'}" TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding SelectedBuilding.Hint}" TextWrapping="Wrap" Margin="0,10" />
-                    <Button Content="Покращити" Style="{StaticResource MapAction}" Command="{Binding UpgradeCommand}"
-                            CommandParameter="{Binding SelectedBuilding}" />
-                    <TextBlock Text="{Binding SelectedBuilding.RefundText, StringFormat='Продаж поверне {0} (50% витрат).'}"
-                               TextWrapping="Wrap" Margin="0,14,0,6" />
-                    <Button Content="Продати будівлю" Style="{StaticResource MapAction}" Command="{Binding RemoveBuildingCommand}"
-                            CommandParameter="{Binding SelectedBuilding}" />
-                </StackPanel>
+                    <StackPanel>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="×" Command="{Binding CloseDetailsCommand}" Style="{StaticResource MapAction}"
+                                    AutomationProperties.Name="Закрити інформацію про будівлю" />
+                            <TextBlock Text="{Binding SelectedBuilding.Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Stretch" />
+                        </DockPanel>
+                        <Image Source="{Binding SelectedBuilding.TypeId, Converter={StaticResource BuildingTexture}}" Height="105" Margin="0,8" />
+                        <TextBlock Text="{Binding SelectedBuilding.Level, StringFormat='Рівень: {0}'}" Margin="0,4" />
+                        <TextBlock Text="{Binding SelectedBuilding.Status}" />
+                        <TextBlock Text="{Binding SelectedBuilding.IncomeText, StringFormat='За тік: {0}'}" Margin="0,4" />
+                        <TextBlock Text="{Binding SelectedBuilding.UpgradeCostText, StringFormat='Покращення: {0}'}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding SelectedBuilding.Hint}" TextWrapping="Wrap" Margin="0,10" />
+                        <Button Content="Покращити" Style="{StaticResource MapAction}" Command="{Binding UpgradeCommand}"
+                                CommandParameter="{Binding SelectedBuilding}" />
+                        <TextBlock Text="{Binding SelectedBuilding.RefundText, StringFormat='Продаж поверне {0} (50% витрат).'}"
+                                   TextWrapping="Wrap" Margin="0,14,0,6" />
+                        <Button Content="Продати будівлю" Style="{StaticResource MapAction}" Command="{Binding RemoveBuildingCommand}"
+                                CommandParameter="{Binding SelectedBuilding}" />
+                    </StackPanel>
                 </ScrollViewer>
             </Border>
+
+            <!-- Панель зіллєваріння -->
             <Border x:Name="CraftingPanel" Grid.Row="1" Grid.Column="1" Style="{StaticResource MapPanel}"
                     Visibility="{Binding IsCraftingOpen, Converter={StaticResource BooleanToVisibility}}">
                 <DockPanel>
@@ -188,18 +271,23 @@
                     </DockPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding CraftingOptions}">
-                            <ItemsControl.ItemTemplate><DataTemplate>
-                                <StackPanel Margin="0,0,0,20">
-                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
-                                    <TextBlock Text="{Binding Ingredients}" Margin="0,8" TextWrapping="Wrap" />
-                                    <Button Content="Виготовити" Style="{StaticResource MapAction}"
-                                            Command="{Binding DataContext.CraftCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                                </StackPanel>
-                            </DataTemplate></ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,0,0,20">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Ingredients}" Margin="0,8" TextWrapping="Wrap" />
+                                        <Button Content="Виготовити" Style="{StaticResource MapAction}"
+                                                Command="{Binding DataContext.CraftCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
+
+            <!-- Панель ринку -->
             <Border x:Name="MarketPanel" Grid.Row="1" Grid.Column="1" Style="{StaticResource MapPanel}"
                     Visibility="{Binding IsMarketOpen, Converter={StaticResource BooleanToVisibility}}">
                 <DockPanel>
@@ -211,26 +299,35 @@
                         <StackPanel>
                             <TextBlock Text="Предмети та інгредієнти" FontSize="16" Margin="0,0,0,10" />
                             <ItemsControl ItemsSource="{Binding MarketItems}">
-                                <ItemsControl.ItemTemplate><DataTemplate>
-                                    <StackPanel Margin="0,0,0,16">
-                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding Price, StringFormat='Ціна: {0} золота'}" Margin="0,4" />
-                                        <Button Content="Купити" Style="{StaticResource MapAction}"
-                                                Command="{Binding DataContext.BuyItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                                    </StackPanel>
-                                </DataTemplate></ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,16">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Price, StringFormat='Ціна: {0} золота'}" Margin="0,4" />
+                                            <Button Content="Купити" Style="{StaticResource MapAction}"
+                                                    Command="{Binding DataContext.BuyItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <TextBlock Text="Біржа акцій" FontSize="16" Margin="0,12" />
                             <ItemsControl ItemsSource="{Binding Stocks}">
-                                <ItemsControl.ItemTemplate><DataTemplate>
-                                    <StackPanel Margin="0,0,0,16">
-                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding Price, StringFormat='Ціна: {0:F2} золота'}" />
-                                        <TextBlock Text="{Binding Quantity, StringFormat='У портфелі: {0}'}" Margin="0,4" />
-                                        <Button Content="Купити 1" Style="{StaticResource MapAction}" Command="{Binding DataContext.BuyStockCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                                        <Button Content="Продати 1" Style="{StaticResource MapAction}" Command="{Binding DataContext.SellStockCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,4" />
-                                    </StackPanel>
-                                </DataTemplate></ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,16">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Price, StringFormat='Ціна: {0:F2} золота'}" />
+                                            <TextBlock Text="{Binding Quantity, StringFormat='У портфелі: {0}'}" Margin="0,4" />
+                                            <Button Content="Купити 1" Style="{StaticResource MapAction}"
+                                                    Command="{Binding DataContext.BuyStockCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="Продати 1" Style="{StaticResource MapAction}"
+                                                    Command="{Binding DataContext.SellStockCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" Margin="0,4" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
                     </ScrollViewer>
@@ -238,6 +335,7 @@
             </Border>
         </Grid>
 
+        <!-- Оверлей прогресу -->
         <Border x:Name="ProgressPanel" Background="#F0252523" Padding="24"
                 Visibility="{Binding IsProgressOpen, Converter={StaticResource BooleanToVisibility}}">
             <DockPanel>
@@ -247,6 +345,7 @@
             </DockPanel>
         </Border>
 
+        <!-- Оверлей вибору ворога -->
         <Border x:Name="EnemySelectionPanel" Background="#D0252523" Visibility="{Binding IsEnemySelectionOpen, Converter={StaticResource BooleanToVisibility}}">
             <Border Style="{StaticResource BattlePanel}" Width="560" MaxHeight="520" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <DockPanel>
@@ -254,23 +353,31 @@
                     <TextBlock DockPanel.Dock="Top" Text="Оберіть ворога" Style="{StaticResource BattleHeading}" />
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Enemies}">
-                            <ItemsControl.ItemTemplate><DataTemplate>
-                                <Border Style="{StaticResource BattlePanel}">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding Name}" Style="{StaticResource BattleHeading}" />
-                                        <TextBlock Style="{StaticResource BattleText}"><Run Text="HP: " /><Run Text="{Binding MaxHealth}" /><Run Text=" · Атака: " /><Run Text="{Binding AttackPower}" /><Run Text=" · Захист: " /><Run Text="{Binding Defense}" /></TextBlock>
-                                        <TextBlock Style="{StaticResource BattleText}"><Run Text="Нагорода: " /><Run Text="{Binding RewardGold}" /><Run Text=" золота, " /><Run Text="{Binding RewardExperience}" /><Run Text=" досвіду" /></TextBlock>
-                                        <Button Content="Почати бій" Style="{StaticResource BattleAction}"
-                                                Command="{Binding DataContext.StartBattleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate></ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource BattlePanel}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" Style="{StaticResource BattleHeading}" />
+                                            <TextBlock Style="{StaticResource BattleText}">
+                                                <Run Text="HP: " /><Run Text="{Binding MaxHealth}" /><Run Text=" · Атака: " /><Run Text="{Binding AttackPower}" /><Run Text=" · Захист: " /><Run Text="{Binding Defense}" />
+                                            </TextBlock>
+                                            <TextBlock Style="{StaticResource BattleText}">
+                                                <Run Text="Нагорода: " /><Run Text="{Binding RewardGold}" /><Run Text=" золота, " /><Run Text="{Binding RewardExperience}" /><Run Text=" досвіду" />
+                                            </TextBlock>
+                                            <Button Content="Почати бій" Style="{StaticResource BattleAction}"
+                                                    Command="{Binding DataContext.StartBattleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
         </Border>
 
+        <!-- Оверлей паузи -->
         <Border Background="#C0252523" Visibility="{Binding IsPaused, Converter={StaticResource BooleanToVisibility}}">
             <Border Style="{StaticResource MapPanel}" Width="390" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
