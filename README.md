@@ -1,5 +1,8 @@
 # AcutStudio
 
+![.NET CI](https://github.com/ACUT-Studio/project/actions/workflows/ci.yml/badge.svg)
+
+
 Настільна гра для Windows: **симулятор розвитку міста** + **покрокові бої**.
 Командний проєкт з дисципліни «Програмна інженерія. Частина 1».
 
