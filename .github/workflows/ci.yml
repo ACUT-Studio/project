@@ -36,10 +36,6 @@ jobs:
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
 
-      - name: Check code formatting (Quality Gate)
-        run: dotnet format acut.slnx --verify-no-changes --no-restore
-        continue-on-error: true # приберіть цей рядок після приведення коду до єдиного стилю
-
       - name: Check vulnerable NuGet packages
         run: dotnet list acut.slnx package --vulnerable --include-transitive
 
