@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
         <Grid.Background>
-            <ImageBrush ImageSource="pack://application:,,,/acut;component/Assets/main_menu_bg.png" 
+            <ImageBrush ImageSource="/Assets/main_menu_bg.png" 
                         Stretch="UniformToFill" 
                         RenderOptions.BitmapScalingMode="NearestNeighbor" />
         </Grid.Background>

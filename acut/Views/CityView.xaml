@@ -80,7 +80,7 @@
                               MouseLeave="CityMap_MouseLeave">
                     <Grid Width="1280" Height="714">
                         <Grid.Background>
-                            <ImageBrush ImageSource="pack://application:,,,/acut;component/Assets/City/city-map-bgb.png"
+                            <ImageBrush ImageSource="pack://application:,,,/Assets/City/city-map-bgb.png"
                                         Stretch="Fill"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor" />
                         </Grid.Background>
@@ -108,7 +108,7 @@
                                             AutomationProperties.Name="{Binding Building.Name, TargetNullValue='Вільна ділянка'}">
                                         <Grid>
                                             <!-- Спрайт вільної ділянки: видно, поки пусто; зникає, коли збудовано будівлю -->
-                                            <Image Source="pack://application:,,,/acut;component/Assets/City/empty-plot.png"
+                                            <Image Source="pack://application:,,,/Assets/City/empty-plot.png"
                                                    Stretch="Fill"
                                                    RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <Image.Style>
