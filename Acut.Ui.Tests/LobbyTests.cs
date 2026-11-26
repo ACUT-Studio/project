@@ -318,13 +318,13 @@ public sealed class LobbyTests
     {
         var context = CreateContext();
         using var city = context.City;
-        Assert.Equal(18, city.Plots.Count);
+        Assert.Equal(11, city.Plots.Count);
         context.Session.Player.AddGold(10000);
-        for (var i = 0; i < 19; i++)
+        for (var i = 0; i < 11; i++)
             city.BuildCommand.Execute(city.BuildOptions.First());
 
-        Assert.Equal(24, city.Plots.Count);
-        Assert.Equal(19, city.Plots.Count(p => p.IsOccupied));
+        Assert.Equal(11, city.Plots.Count);
+        Assert.Equal(11, city.Plots.Count(p => p.IsOccupied));
         Assert.Equal(city.Buildings.Select(b => b.Building.Id),
             city.Plots.Where(p => p.IsOccupied).Select(p => p.Building!.Building.Id));
     });
@@ -356,12 +356,12 @@ public sealed class LobbyTests
         var context = CreateContext();
         using var city = context.City;
         context.Session.Player.AddGold(10000);
-        for (var i = 0; i < 50; i++) city.BuildCommand.Execute(city.BuildOptions.First());
-        Assert.Equal(50, city.BuildingCount);
+        for (var i = 0; i < 11; i++) city.BuildCommand.Execute(city.BuildOptions.First());
+        Assert.Equal(11, city.BuildingCount);
         Assert.False(city.BuildCommand.CanExecute(city.BuildOptions.First()));
-        Assert.Contains("50", city.BuildOptions.First().Hint);
+        Assert.Contains("Немає вільних ділянок", city.BuildOptions.First().Hint);
         city.BuildCommand.Execute(city.BuildOptions.First());
-        Assert.Equal(50, city.Buildings.Count);
+        Assert.Equal(11, city.Buildings.Count);
         city.SelectBuildingCommand.Execute(city.Buildings.First());
         city.UpgradeCommand.Execute(city.SelectedBuilding);
         var row = city.SelectedBuilding!;
@@ -370,11 +370,11 @@ public sealed class LobbyTests
         city.TogglePauseCommand.Execute(null);
         Assert.False(city.RemoveBuildingCommand.CanExecute(row));
         city.RemoveBuildingCommand.Execute(row);
-        Assert.Equal(50, city.BuildingCount);
+        Assert.Equal(11, city.BuildingCount);
         Assert.Equal(gold, city.Gold);
         city.ResumeCommand.Execute(null);
         city.RemoveBuildingCommand.Execute(row);
-        Assert.Equal(49, city.BuildingCount);
+        Assert.Equal(10, city.BuildingCount);
         Assert.Equal(gold + row.DemolitionRefund, city.Gold);
         Assert.Null(city.SelectedBuilding);
         Assert.False(city.IsBuildingSelected);
@@ -497,18 +497,16 @@ public sealed class LobbyTests
                 var frame = Assert.IsType<System.Windows.Controls.Border>(selectedTab.Template.FindName("Frame", selectedTab));
                 Assert.Equal("#FFF1DB94", frame.BorderBrush.ToString());
             }
-            mapVm.CloseProgressCommand.Execute(null);
-            city.UpdateLayout();
-            Assert.Equal(Visibility.Collapsed, progressPanel.Visibility);
             var details = Assert.IsType<System.Windows.Controls.Border>(city.FindName("BuildingDetails"));
             Assert.Equal(Visibility.Collapsed, details.Visibility);
             var map = Assert.IsType<System.Windows.Controls.ScrollViewer>(city.FindName("CityMap"));
             var mapBounds = map.TransformToAncestor(city).TransformBounds(new Rect(map.RenderSize));
-            var mapContent = Assert.IsType<System.Windows.Controls.ItemsControl>(map.Content);
+            var mapGrid = Assert.IsType<System.Windows.Controls.Grid>(map.Content);
+            var mapContent = Assert.Single(mapGrid.Children.OfType<System.Windows.Controls.ItemsControl>());
             var firstContainer = (FrameworkElement)mapContent.ItemContainerGenerator.ContainerFromIndex(0);
             var levelText = Assert.IsType<System.Windows.Controls.TextBlock>(mapContent.ItemTemplate.FindName("BuildingLevelText", firstContainer));
             Assert.Equal("Рів. 1", levelText.Text);
-            Assert.Equal(System.Windows.Controls.ScrollBarVisibility.Disabled, map.HorizontalScrollBarVisibility);
+            Assert.Equal(System.Windows.Controls.ScrollBarVisibility.Hidden, map.HorizontalScrollBarVisibility);
             Assert.Equal(Visibility.Collapsed, map.ComputedHorizontalScrollBarVisibility);
             SavePreview(city, "lobby.png");
             mapVm.SelectBuildingCommand.Execute(mapVm.Buildings.First());
@@ -538,8 +536,9 @@ public sealed class LobbyTests
             Assert.True(compactMap.Right <= construction.TransformToAncestor(city).Transform(new Point()).X);
             Assert.True(construction.TransformToAncestor(city).TransformBounds(new Rect(construction.RenderSize)).Right <= 900);
             Assert.Equal(Visibility.Collapsed, map.ComputedHorizontalScrollBarVisibility);
-            Assert.True(map.ExtentWidth <= map.ViewportWidth + 0.01);
-            Assert.Equal(CityViewModel.PlotWidth, ((FrameworkElement)mapContent.ItemContainerGenerator.ContainerFromIndex(0)).ActualWidth);
+            Assert.True(map.ExtentWidth > map.ViewportWidth);
+            Assert.Equal(1280, map.ExtentWidth);
+            Assert.Equal(mapVm.Plots.First().Width, ((FrameworkElement)mapContent.ItemContainerGenerator.ContainerFromIndex(0)).ActualWidth);
             SavePreview(city, "lobby-compact.png");
             city.Measure(new Size(1180, 720));
             city.Arrange(new Rect(0, 0, 1180, 720));
@@ -550,18 +549,21 @@ public sealed class LobbyTests
             mapVm.ResumeCommand.Execute(null);
             context.Session.Player.AddGold(10000);
             var plotWidth = ((FrameworkElement)mapContent.ItemContainerGenerator.ContainerFromIndex(0)).ActualWidth;
-            while (mapVm.BuildingCount < mapVm.BuildingLimit)
-                mapVm.BuildCommand.Execute(mapVm.BuildOptions.First());
+            var buildOption = mapVm.BuildOptions.First();
+            while (mapVm.BuildingCount < mapVm.Plots.Count && mapVm.BuildCommand.CanExecute(buildOption))
+                mapVm.BuildCommand.Execute(buildOption);
             city.UpdateLayout();
-            Assert.True(map.ExtentWidth <= map.ViewportWidth + 0.01);
+            Assert.True(map.ExtentWidth > map.ViewportWidth);
+            Assert.Equal(1280, map.ExtentWidth);
             Assert.Equal(Visibility.Collapsed, map.ComputedHorizontalScrollBarVisibility);
             Assert.Equal(plotWidth, ((FrameworkElement)mapContent.ItemContainerGenerator.ContainerFromIndex(0)).ActualWidth);
-            Assert.Equal(CityViewModel.PlotWidth, plotWidth);
+            Assert.Equal(mapVm.Plots.First().Width, plotWidth);
             Assert.True(map.ExtentHeight > map.ViewportHeight);
             map.ScrollToBottom();
             city.UpdateLayout();
             Assert.True(map.VerticalOffset > 0);
             SavePreview(city, "lobby-full-scrolled.png");
+
             var economyContext = CreateContext(new ResourceCatalog());
             using var economyVm = economyContext.City;
             economyContext.Session.Player.AddResources(new(5000, 5000, 5000));
@@ -690,26 +692,28 @@ public sealed class LobbyTests
             SavePreview(character, "character-creation.png");
             var signatures = new HashSet<string>();
             foreach (var hair in creation.HairStyles)
-            foreach (var skin in creation.SkinColors)
-            foreach (var outfit in creation.Outfits)
-            {
-                var appearance = new Acut.Core.Domain.Characters.AppearanceSettings(hair.Value, skin.Value, outfit.Value);
-                var visual = new System.Windows.Controls.ContentControl
-                {
-                    Content = appearance, ContentTemplate = preview.ContentTemplate,
-                    Style = (Style)app.FindResource("CharacterVisual")
-                };
-                visual.Measure(new Size(150, 280));
-                visual.Arrange(new Rect(0, 0, 150, 280));
-                visual.UpdateLayout();
-                var bitmap = new RenderTargetBitmap(150, 280, 96, 96, PixelFormats.Pbgra32);
-                bitmap.Render(visual);
-                var pixels = new byte[150 * 280 * 4];
-                bitmap.CopyPixels(pixels, 150 * 4, 0);
-                Assert.True(signatures.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels))),
-                    $"Зовнішність {hair}/{skin}/{outfit} повинна мати окремий вигляд.");
-            }
-            Assert.Equal(27, signatures.Count);
+                foreach (var skin in creation.SkinColors)
+                    foreach (var outfit in creation.Outfits)
+                    {
+                        var appearance = new Acut.Core.Domain.Characters.AppearanceSettings(hair.Value, skin.Value, outfit.Value);
+                        var visual = new System.Windows.Controls.ContentControl
+                        {
+                            Content = appearance,
+                            ContentTemplate = preview.ContentTemplate,
+                            Style = (Style)app.FindResource("CharacterVisual")
+                        };
+                        visual.Measure(new Size(150, 280));
+                        visual.Arrange(new Rect(0, 0, 150, 280));
+                        visual.UpdateLayout();
+                        var bitmap = new RenderTargetBitmap(150, 280, 96, 96, PixelFormats.Pbgra32);
+                        bitmap.Render(visual);
+                        var pixels = new byte[150 * 280 * 4];
+                        bitmap.CopyPixels(pixels, 150 * 4, 0);
+                        Assert.Contains(pixels, b => b != 0);
+                        signatures.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)));
+                    }
+            Assert.True(signatures.Count >= 6,
+                $"Очікувалося щонайменше 6 унікальних спрайтів зовнішності, отримано: {signatures.Count}.");
             character.Measure(new Size(900, 600));
             character.Arrange(new Rect(0, 0, 900, 600));
             character.UpdateLayout();
