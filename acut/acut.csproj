@@ -18,9 +18,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Remove="Assets\Battle\battle-background.png" />
 		<None Remove="Assets\Buildings\buildings-atlas.png" />
+		<None Remove="Assets\Characters\outfit_0-skin_1-attack.png" />
+		<None Remove="Assets\Characters\outfit_0-skin_1.png" />
+		<None Remove="Assets\Characters\outfit_0-skin_2-attack.png" />
+		<None Remove="Assets\Characters\outfit_0-skin_2.png" />
+		<None Remove="Assets\Characters\outfit_0-skin_3-attack.png" />
+		<None Remove="Assets\Characters\outfit_0-skin_3.png" />
+		<None Remove="Assets\Characters\outfit_1-skin_1-attack.png" />
 		<None Remove="Assets\Characters\outfit_1-skin_1.png" />
+		<None Remove="Assets\Characters\outfit_1-skin_2-attack.png" />
 		<None Remove="Assets\Characters\outfit_1-skin_2.png" />
+		<None Remove="Assets\Characters\outfit_1-skin_3-attack.png" />
 		<None Remove="Assets\Characters\outfit_1-skin_3.png" />
 		<None Remove="Assets\Characters\skin_1.png" />
 		<None Remove="Assets\Characters\skin_2.png" />
@@ -29,16 +39,25 @@
 		<None Remove="Assets\City\city-map-bg.png" />
 		<None Remove="Assets\City\city-map-bgb.png" />
 		<None Remove="Assets\City\empty-plot.png" />
+		<None Remove="Assets\Enemies\Sprite-0001-sheet.png" />
 		<None Remove="Assets\main_menu_bg.png" />
+		<Resource Include="Assets\Battle\battle-background.png" />
+		<Resource Include="Assets\Characters\outfit_0-skin_1-attack.png" />
+		<Resource Include="Assets\Characters\outfit_0-skin_1.png" />
+		<Resource Include="Assets\Characters\outfit_0-skin_2-attack.png" />
+		<Resource Include="Assets\Characters\outfit_0-skin_2.png" />
+		<Resource Include="Assets\Characters\outfit_0-skin_3-attack.png" />
+		<Resource Include="Assets\Characters\outfit_0-skin_3.png" />
+		<Resource Include="Assets\Characters\outfit_1-skin_1-attack.png" />
 		<Resource Include="Assets\Characters\outfit_1-skin_1.png" />
+		<Resource Include="Assets\Characters\outfit_1-skin_2-attack.png" />
 		<Resource Include="Assets\Characters\outfit_1-skin_2.png" />
+		<Resource Include="Assets\Characters\outfit_1-skin_3-attack.png" />
 		<Resource Include="Assets\Characters\outfit_1-skin_3.png" />
-		<Resource Include="Assets\Characters\skin_1.png" />
-		<Resource Include="Assets\Characters\skin_2.png" />
-		<Resource Include="Assets\Characters\skin_3.png" />
 		<Resource Include="Assets\Buildings\buildings-atlas.png" />
 		<Resource Include="Assets\City\city-map-bgb.png" />
 		<Resource Include="Assets\City\empty-plot.png" />
+		<Resource Include="Assets\Enemies\Sprite-0001-sheet.png" />
 		<Resource Include="Assets\main_menu_bg.png" />
 	</ItemGroup>
 

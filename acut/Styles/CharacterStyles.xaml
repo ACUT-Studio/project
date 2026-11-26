@@ -4,25 +4,25 @@
     <DataTemplate x:Key="CharacterAppearanceTemplate">
         <Grid RenderOptions.BitmapScalingMode="NearestNeighbor">
             <Image x:Name="CharacterSprite"
-                   Source="pack://application:,,,/Assets/Characters/skin_1.png"
+                   Source="pack://application:,,,/Assets/Characters/outfit_0-skin_1.png"
                    Stretch="Uniform" />
         </Grid>
         <DataTemplate.Triggers>
-            <!-- Базовий образ для кожного тону шкіри -->
+            <!-- Базовий образ (outfit_0) для кожного тону шкіри -->
             <DataTrigger Binding="{Binding SkinColor}" Value="Light">
                 <Setter TargetName="CharacterSprite" Property="Source"
-                        Value="pack://application:,,,/Assets/Characters/skin_1.png" />
+                        Value="pack://application:,,,/Assets/Characters/outfit_0-skin_1.png" />
             </DataTrigger>
             <DataTrigger Binding="{Binding SkinColor}" Value="Tan">
                 <Setter TargetName="CharacterSprite" Property="Source"
-                        Value="pack://application:,,,/Assets/Characters/skin_2.png" />
+                        Value="pack://application:,,,/Assets/Characters/outfit_0-skin_2.png" />
             </DataTrigger>
             <DataTrigger Binding="{Binding SkinColor}" Value="Dark">
                 <Setter TargetName="CharacterSprite" Property="Source"
-                        Value="pack://application:,,,/Assets/Characters/skin_3.png" />
+                        Value="pack://application:,,,/Assets/Characters/outfit_0-skin_3.png" />
             </DataTrigger>
 
-            <!-- Одяг Merchant з урахуванням тону шкіри -->
+            <!-- Одяг Merchant (outfit_1) з урахуванням тону шкіри -->
             <MultiDataTrigger>
                 <MultiDataTrigger.Conditions>
                     <Condition Binding="{Binding Outfit}" Value="Merchant" />
